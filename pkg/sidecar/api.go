@@ -8,7 +8,7 @@ import (
 type chanWriter []chan string
 
 func (w chanWriter) Write(p []byte) (n int, err error) {
-	for _, c := range w{
+	for _, c := range w {
 		c <- string(p)
 	}
 
@@ -16,10 +16,15 @@ func (w chanWriter) Write(p []byte) (n int, err error) {
 	return
 }
 
+func (w chanWriter) Close() {
+	for _, c := range w {
+		close(c)
+	}
+}
+
 func New(name string, arg ...string) (r *Runner) {
 	r = &Runner{}
-
-	r.ctx, r.Kill = context.WithCancel(context.Background())
+	r.ctx, r.kill = context.WithCancel(context.Background())
 	r.proc = exec.CommandContext(r.ctx, name, arg...)
 	return
 }
@@ -27,15 +32,26 @@ func New(name string, arg ...string) (r *Runner) {
 type Runner struct {
 	stdout chanWriter
 	stderr chanWriter
-	ctx context.Context
-	Kill context.CancelFunc
-	proc *exec.Cmd
+	ctx    context.Context
+	kill   context.CancelFunc
+	proc   *exec.Cmd
 }
 
 func (r *Runner) Start() error {
 	r.proc.Stdout = r.stdout
 	r.proc.Stderr = r.stderr
 	return r.proc.Start()
+}
+
+func (r *Runner) Kill() error {
+	r.kill()
+	if err := r.proc.Wait(); err != nil {
+		return err
+	}
+
+	r.stdout.Close()
+	r.stderr.Close()
+	return nil
 }
 
 func (r *Runner) Stdout() <-chan string {
