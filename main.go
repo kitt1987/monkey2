@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "github.com/kitt1987/git-roll/cmd"
+import "github.com/git-roll/monkey2/cmd"
 
 func main() {
 	cmd.Execute()
