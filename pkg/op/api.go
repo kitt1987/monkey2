@@ -37,16 +37,20 @@ func (w Worktree) OverrideFile(name, text string, off, size int64) {
 		w.panic(path, fmt.Errorf("size: %d, offset: %d", fi.Size(), off))
 	}
 
+	var overriddenBuf []byte
 	if overriddenLen > 0 {
-		buf := make([]byte, 0, overriddenLen)
+		overriddenBuf = make([]byte, 0, overriddenLen)
 		offset := off
 		var n int64
 		var err error
 		for n < overriddenLen && err != io.EOF {
 			var m int
-			m, err = f.ReadAt(buf[n:], offset)
+			m, err = f.ReadAt(overriddenBuf[n:], offset)
+			if m == 0 {
+				w.panic(path, err)
+			}
 			n += int64(m)
-			offset += n
+			offset += int64(m)
 		}
 	}
 
@@ -55,22 +59,53 @@ func (w Worktree) OverrideFile(name, text string, off, size int64) {
 		offset := off
 		var n int64
 		var err error
-		for n < int64(len(text)) && err == nil {
+		for n < int64(len(text)) {
 			var m int
 			m, err = f.WriteAt(buf[n:], offset)
+			if m == 0 {
+				w.panic(path, err)
+			}
+
 			n += int64(m)
-			offset += n
+			offset += int64(m)
 		}
-
-
 	}
 
+	if int64(len(overriddenBuf)) > size {
+		buf := overriddenBuf[size:]
+		var n int64
+		var err error
+		for n < int64(len(buf)) {
+			var m int
+			m, err = f.Write(buf[n:])
+			if m == 0 {
+				w.panic(path, err)
+			}
+
+			n += int64(m)
+		}
+	}
 }
 
 func (w Worktree) NewDir(name string) {
 	path := w.completePath(name)
 	if err := os.MkdirAll(path, 0755); err != nil {
 		w.panic(path, err)
+	}
+}
+
+func (w Worktree) Delete(name string) {
+	path := w.completePath(name)
+	if err := os.RemoveAll(path); err != nil {
+		w.panic(path, err)
+	}
+}
+
+func (w Worktree) Rename(origin, target string) {
+	originPath := w.completePath(origin)
+	targetPath := w.completePath(target)
+	if err := os.Rename(originPath, targetPath); err != nil {
+		w.panic(originPath, err)
 	}
 }
 
