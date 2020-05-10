@@ -2,6 +2,9 @@ package sidecar
 
 import (
 	"context"
+	"fmt"
+	"github.com/git-roll/monkey2/pkg/conf"
+	"os"
 	"os/exec"
 )
 
@@ -30,38 +33,52 @@ func New(name string, arg ...string) (r *Runner) {
 }
 
 type Runner struct {
-	stdout chanWriter
-	stderr chanWriter
+	//stdout chanWriter
+	//stderr chanWriter
 	ctx    context.Context
 	kill   context.CancelFunc
 	proc   *exec.Cmd
+	std *os.File
 }
 
 func (r *Runner) Start() error {
-	
-	r.proc.Stdout = r.stdout
-	r.proc.Stderr = r.stderr
+	stdfile := conf.SidecarStdFile()
+	f, err := os.OpenFile(stdfile, os.O_RDWR, 0666)
+	if err != nil {
+		panic(fmt.Sprintf("%s:%s", stdfile, err))
+	}
+
+	r.std = f
+
+	r.proc.Stdout = f
+	r.proc.Stderr = f
 	return r.proc.Start()
 }
 
 func (r *Runner) Kill() {
 	r.kill()
+	defer func() {
+		if r.std != nil {
+			r.std.Close()
+		}
+	}()
+
 	if err := r.proc.Wait(); err != nil {
 		return
 	}
 
-	r.stdout.Close()
-	r.stderr.Close()
+	//r.stdout.Close()
+	//r.stderr.Close()
 }
 
-func (r *Runner) Stdout() <-chan string {
-	ch := make(chan string)
-	r.stdout = append(r.stdout, ch)
-	return ch
-}
-
-func (r *Runner) Stderr() <-chan string {
-	ch := make(chan string)
-	r.stderr = append(r.stderr, ch)
-	return ch
-}
+//func (r *Runner) Stdout() <-chan string {
+//	ch := make(chan string)
+//	r.stdout = append(r.stdout, ch)
+//	return ch
+//}
+//
+//func (r *Runner) Stderr() <-chan string {
+//	ch := make(chan string)
+//	r.stderr = append(r.stderr, ch)
+//	return ch
+//}

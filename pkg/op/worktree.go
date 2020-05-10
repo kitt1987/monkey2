@@ -9,6 +9,20 @@ import (
 )
 
 func NewWorktree(workDir string) *Worktree {
+	fi, err := os.Lstat(workDir)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			panic(fmt.Sprintf("%s:%s", workDir, err))
+		}
+
+		err = os.MkdirAll(workDir, 0755)
+		if err != nil {
+			panic(fmt.Sprintf("%s:%s", workDir, err))
+		}
+	} else if !fi.IsDir() {
+		panic(fmt.Sprintf("%s:not a directory", workDir))
+	}
+
 	return &Worktree{baseDir: workDir}
 }
 
@@ -114,7 +128,7 @@ func (w Worktree) createFile(name, text string) {
 
 func (w Worktree) overrideFile(name, text string, off, size int64) {
 	path := w.completePath(name)
-	f, err := os.OpenFile(path, os.O_RDWR, 0755)
+	f, err := os.OpenFile(path, os.O_RDWR, 0666)
 	if err != nil {
 		w.panic(path, err)
 	}

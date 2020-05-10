@@ -2,6 +2,7 @@ package conf
 
 import (
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -25,7 +26,12 @@ func CoffeeTimeUpperBound() string {
 }
 
 func Worktree() string {
-	return os.Getenv(EnvWorktree)
+	wt := os.Getenv(EnvWorktree)
+	if len(wt) == 0 {
+		wt = filepath.Join(os.TempDir(), "monkey")
+	}
+
+	return wt
 }
 
 func SidecarStdFile() string {
