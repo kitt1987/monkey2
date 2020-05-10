@@ -38,20 +38,20 @@ type Runner struct {
 }
 
 func (r *Runner) Start() error {
+	
 	r.proc.Stdout = r.stdout
 	r.proc.Stderr = r.stderr
 	return r.proc.Start()
 }
 
-func (r *Runner) Kill() error {
+func (r *Runner) Kill() {
 	r.kill()
 	if err := r.proc.Wait(); err != nil {
-		return err
+		return
 	}
 
 	r.stdout.Close()
 	r.stderr.Close()
-	return nil
 }
 
 func (r *Runner) Stdout() <-chan string {
