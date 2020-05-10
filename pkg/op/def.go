@@ -31,10 +31,11 @@ func (o WorktreeObject) String() string {
 }
 
 type WorktreeOPArgs struct {
-	RelativePath  string
-	RenameFile    string
-	RenameDir     string
-	Content       string
-	WriteOffset   int64
-	OverriddenLen int64
+	RelativeFilePath    string
+	RelativeDirPath     string
+	RelativeRenamedFile string
+	RelativeRenamedDir  string
+	Content             string
+	WriteOffset         int64
+	OverriddenLen       int64
 }

@@ -13,7 +13,39 @@ type Worktree struct {
 }
 
 func (w Worktree) Apply(ob WorktreeObject, op WorktreeOP, args *WorktreeOPArgs) {
-	
+	switch ob {
+	case FSFile:
+		w.applyFile(op, args)
+	case FSDir:
+		w.applyDir(op, args)
+	default:
+		panic(ob)
+	}
+}
+
+func (w Worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
+	switch op {
+	case FSCreate:
+	case FSDelete:
+		w.Delete(args.RelativePath)
+	case FSRename:
+		w.Rename(args.RelativePath, args.RelativeRenamedFile)
+	case FSOverride:
+	default:
+		panic(op)
+	}
+}
+
+func (w Worktree) applyDir(op WorktreeOP, args *WorktreeOPArgs) {
+	switch op {
+	case FSCreate:
+	case FSDelete:
+		w.Delete(args.RelativePath)
+	case FSRename:
+		w.Rename(args.RelativePath, args.RelativeRenamedDir)
+	default:
+		panic(op)
+	}
 }
 
 func (w Worktree) NewFile(name, text string) {
