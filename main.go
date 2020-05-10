@@ -39,6 +39,7 @@ func main() {
 	}
 
 	sidecar := side.NewCar()
+	sidecar.Start()
 
 	stopC := make(chan struct{})
 	wg := wait.Group{}

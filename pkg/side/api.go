@@ -10,7 +10,7 @@ import (
 )
 
 type Car interface {
-	Start() error
+	Start()
 	Kill()
 	Done() <-chan error
 }
@@ -33,7 +33,7 @@ func (w chanWriter) Close() {
 }
 
 func NewCar() Car {
-	if len(os.Args) < 2 {
+	if len(os.Args) < 3 {
 		return newPlaceholder()
 	}
 
@@ -41,7 +41,12 @@ func NewCar() Car {
 		done: make(chan error, 1),
 	}
 	r.ctx, r.kill = context.WithCancel(context.Background())
-	r.proc = exec.CommandContext(r.ctx, os.Args[2], os.Args[2:]...)
+	var args []string
+	if len(os.Args) > 3 {
+		args = os.Args[3:]
+	}
+
+	r.proc = exec.CommandContext(r.ctx, os.Args[2], args...)
 	r.proc.Env = os.Environ()
 	r.proc.Dir = conf.Worktree()
 	return r
@@ -57,9 +62,9 @@ type Runner struct {
 	done chan error
 }
 
-func (r *Runner) Start() error {
+func (r *Runner) Start() {
 	stdfile := conf.SidecarStdFile()
-	f, err := os.OpenFile(stdfile, os.O_RDWR, 0666)
+	f, err := os.OpenFile(stdfile, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		panic(fmt.Sprintf("%s:%s", stdfile, err))
 	}
@@ -74,8 +79,6 @@ func (r *Runner) Start() error {
 		r.done<-r.proc.Run()
 		close(r.done)
 	}()
-
-	return nil
 }
 
 func (r *Runner) Done() <-chan error {

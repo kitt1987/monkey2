@@ -29,11 +29,7 @@ func (m *insaneMonkey) StartWork(stopC <-chan struct{}) {
 	m.idle = time.NewTimer(time.Nanosecond)
 	for {
 		select {
-		case _, ok := <-m.idle.C:
-			if !ok {
-				return
-			}
-
+		case <-m.idle.C:
 			m.work()
 
 			idle := randomCoffeeTime()
@@ -41,6 +37,7 @@ func (m *insaneMonkey) StartWork(stopC <-chan struct{}) {
 			m.idle.Reset(idle)
 		case <-stopC:
 			m.Halt()
+			return
 		}
 	}
 }
@@ -71,7 +68,7 @@ func (m *insaneMonkey) work() {
 		fileOpBias.Set(int(op.FSOverride), 25)
 	}
 
-	ob, op := randomFSOp(obBias, dirOpBias, fileOpBias)
+	ob, op := randomFSOp(obBias, fileOpBias, dirOpBias)
 	m.worktree.Apply(ob, op, m.prepareArgs(allFiles, allDirs))
 }
 

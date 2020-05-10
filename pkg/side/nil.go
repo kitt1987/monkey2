@@ -8,8 +8,7 @@ func (p *placeholder) Kill() {
 	close(p.done)
 }
 
-func (p *placeholder) Start() error {
-	return nil
+func (p *placeholder) Start() {
 }
 
 func (p *placeholder) Done() <-chan error {
