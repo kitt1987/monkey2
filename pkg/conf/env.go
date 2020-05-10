@@ -6,11 +6,11 @@ import (
 )
 
 const (
-	EnvIdleTimeUpperBound = "MONKEY_IDLE_UPPER_BOUND"
+	EnvCoffeeTimeUpperBound = "COFFEE_TIME_UPPER_BOUND"
 )
 
-func MonkeyIdleTimeUpperBound() string {
-	v := os.Getenv(EnvIdleTimeUpperBound)
+func CoffeeTimeUpperBound() string {
+	v := os.Getenv(EnvCoffeeTimeUpperBound)
 	if len(v) > 0 {
 		return v
 	}

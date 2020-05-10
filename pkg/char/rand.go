@@ -19,10 +19,10 @@ func randomFSOp() (fsObj FileSystemObject, fsOP FileSystemOP) {
 	return
 }
 
-func randomIdleTime() time.Duration {
-	du, err := time.ParseDuration(conf.MonkeyIdleTimeUpperBound())
+func randomCoffeeTime() time.Duration {
+	du, err := time.ParseDuration(conf.CoffeeTimeUpperBound())
 	if err != nil {
-		panic(fmt.Sprintf("%s:%s", conf.MonkeyIdleTimeUpperBound(), err))
+		panic(fmt.Sprintf("%s:%s", conf.CoffeeTimeUpperBound(), err))
 	}
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
