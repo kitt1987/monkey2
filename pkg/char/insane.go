@@ -31,6 +31,8 @@ func (m *insaneMonkey) StartWork(stopC <-chan struct{}) {
 				return
 			}
 
+			m.work()
+
 			idle := randomCoffeeTime()
 			fmt.Printf("☕️ coffee time: %s", idle)
 			m.idle.Reset(idle)
@@ -40,6 +42,6 @@ func (m *insaneMonkey) StartWork(stopC <-chan struct{}) {
 	}
 }
 
-func (m insaneMonkey) nextCode() {
+func (m *insaneMonkey) work() {
 
 }

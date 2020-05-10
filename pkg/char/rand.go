@@ -3,17 +3,18 @@ package char
 import (
 	"fmt"
 	"github.com/git-roll/monkey2/pkg/conf"
+	"github.com/git-roll/monkey2/pkg/op"
 	"math/rand"
 	"time"
 )
 
-func randomFSOp() (fsObj FileSystemObject, fsOP FileSystemOP) {
+func randomFSOp() (fsObj op.FileSystemObject, fsOP op.FileSystemOP) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	fsObj = FileSystemObject(r.Intn(TotalFSObject))
-	if fsObj == FSFile {
-		fsOP = FileSystemOP(r.Intn(TotalFSOP))
+	fsObj = op.FileSystemObject(r.Intn(op.TotalFSObject))
+	if fsObj == op.FSFile {
+		fsOP = op.FileSystemOP(r.Intn(op.TotalFSOP))
 	} else {
-		fsOP = FileSystemOP(r.Intn(TotalFSOP - 1))
+		fsOP = op.FileSystemOP(r.Intn(op.TotalFSOP - 1))
 	}
 
 	return

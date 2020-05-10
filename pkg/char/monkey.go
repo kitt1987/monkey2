@@ -1,6 +1,6 @@
 package char
 
 type Monkey interface {
-	StartWork()
+	StartWork(stopC <-chan struct{})
 	Halt()
 }
