@@ -38,37 +38,33 @@ func main() {
 		return
 	}
 
-	var sc *side.Runner
-	if len(os.Args) > 2 {
-		sc = side.New(os.Args[2], os.Args[2:]...)
-		err := sc.Start()
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-	}
+	sidecar := side.NewCar()
 
 	stopC := make(chan struct{})
 	wg := wait.Group{}
 	wg.StartWithChannel(stopC, monkey.StartWork)
-	defer func() {
-		wg.Wait()
-		if sc != nil {
-			sc.Kill()
-		}
-	}()
 
 	for {
 		select {
-		case <-sc.Done:
-			sc = nil
+		case err, _ := <-sidecar.Done():
+			if err != nil {
+				fmt.Printf("🩸 Sidecar broke!")
+			}
+
 			signal.Stop(signCh)
 			close(stopC)
+			wg.Wait()
 			return
 
-		case <-signCh:
+		case _, ok := <-signCh:
+			if !ok {
+				return
+			}
+
 			signal.Stop(signCh)
 			close(stopC)
+			wg.Wait()
+			sidecar.Kill()
 			return
 		}
 	}

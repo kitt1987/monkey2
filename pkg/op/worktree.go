@@ -217,12 +217,7 @@ func (w Worktree) rename(origin, target string) {
 }
 
 func (w Worktree) completePath(name string) (path string) {
-	path = filepath.Join(w.baseDir, name)
-	if _, err := os.Lstat(path); !os.IsNotExist(err) {
-		panic(path)
-	}
-
-	return
+	return filepath.Join(w.baseDir, name)
 }
 
 func (w Worktree) panic(path string, err error) {

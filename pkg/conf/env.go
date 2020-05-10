@@ -69,7 +69,7 @@ func WriteOnceLengthUpperBound() int {
 
 func PercentageFileOP() int {
 	return envInt(EnvPercentageFileOP, 70,
-		`🚁 %s%% filesystem operations would be on files`+"\n",
+		`🚁 %d%% filesystem operations would be on files`+"\n",
 		)
 }
 
