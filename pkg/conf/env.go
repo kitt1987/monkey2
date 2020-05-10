@@ -28,29 +28,31 @@ func notice(key string, hint string, v interface{}) {
 
 func CoffeeTimeUpperBound() string {
 	v := os.Getenv(EnvCoffeeTimeUpperBound)
-	if len(v) > 0 {
-		return v
+	if len(v) == 0 {
+		v = time.Minute.String()
 	}
 
-	return time.Minute.String()
+	notice(EnvWorktree, `🚁 Coffee time would be up to %s`+"\n", v)
+	return v
 }
 
 func Worktree() string {
 	wt := os.Getenv(EnvWorktree)
 	if len(wt) == 0 {
 		wt = filepath.Join(os.TempDir(), "monkey")
-		fmt.Printf(`🚁 The workdir will be "%s"`+"\n", wt)
 	}
 
+	notice(EnvWorktree, `🚁 The workdir will be "%s"`+"\n", wt)
 	return wt
 }
 
 func SidecarStdFile() string {
 	std := os.Getenv(EnvSidecarStdFile)
 	if len(std) == 0 {
-		fmt.Printf(`🚁 Stdout of the sidecar will be written to "%s"`+"\n", std)
+		std = filepath.Join(os.TempDir(), "monkey.sidecar")
 	}
 
+	notice(EnvSidecarStdFile, `🚁 Stdout of the sidecar will be written to "%s"`+"\n", std)
 	return std
 }
 
@@ -83,10 +85,6 @@ func envInt(key string, def int, hint string) (i int) {
 		i = def
 	}
 
-	if !noticeOnce[key] {
-		fmt.Printf(hint, v)
-		noticeOnce[key] = true
-	}
-
+	notice(key, hint, i)
 	return
 }
