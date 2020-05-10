@@ -1,4 +1,4 @@
-package sidecar
+package side
 
 import (
 	"context"

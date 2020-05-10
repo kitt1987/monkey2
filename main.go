@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/git-roll/monkey2/pkg/char"
 	"github.com/git-roll/monkey2/pkg/conf"
-	"github.com/git-roll/monkey2/pkg/sidecar"
+	"github.com/git-roll/monkey2/pkg/side"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"os"
 	"os/signal"
@@ -38,9 +38,9 @@ func main() {
 		return
 	}
 
-	var sc *sidecar.Runner
+	var sc *side.Runner
 	if len(os.Args) > 2 {
-		sc = sidecar.New(os.Args[2], os.Args[2:]...)
+		sc = side.New(os.Args[2], os.Args[2:]...)
 		err := sc.Start()
 		if err != nil {
 			fmt.Println(err.Error())
@@ -60,6 +60,12 @@ func main() {
 
 	for {
 		select {
+		case <-sc.Done:
+			sc = nil
+			signal.Stop(signCh)
+			close(stopC)
+			return
+
 		case <-signCh:
 			signal.Stop(signCh)
 			close(stopC)
