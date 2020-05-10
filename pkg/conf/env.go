@@ -17,6 +17,15 @@ const (
 	EnvSidecarStdFile       = "SIDECAR_STD_FILE"
 )
 
+var noticeOnce = make(map[string]bool)
+
+func notice(key string, hint string, v interface{}) {
+	if !noticeOnce[key] {
+		fmt.Printf(hint, v)
+		noticeOnce[key] = true
+	}
+}
+
 func CoffeeTimeUpperBound() string {
 	v := os.Getenv(EnvCoffeeTimeUpperBound)
 	if len(v) > 0 {
@@ -46,30 +55,38 @@ func SidecarStdFile() string {
 }
 
 func NameLength() int {
-	return envInt(EnvNameLength, 8, fmt.Sprintf(`🚁 Length of file/dir name would be "%d"`+"\n", 8))
+	return envInt(EnvNameLength, 8, `🚁 Length of file/dir name would be %d`+"\n")
 }
 
 func WriteOnceLengthUpperBound() int {
 	return envInt(
 		EnvWriteOnceLength, 2048,
-		fmt.Sprintf(`🚁 Length of each file write would be "%d"`+"\n", 2048),
+		`🚁 Length of each file write would be %d`+"\n",
 	)
 }
 
 func PercentageFileOP() int {
-	return envInt(EnvPercentageFileOP)
+	return envInt(EnvPercentageFileOP, 70,
+		`🚁 %s%% filesystem operations would be on files`+"\n",
+		)
 }
 
-func envInt(key string, def int, defHint string) int {
-	if len(key) == 0 {
-		fmt.Print(defHint)
-		return def
+func envInt(key string, def int, hint string) (i int) {
+	v := os.Getenv(key)
+	if len(v) > 0 {
+		i64, err := strconv.ParseInt(v, 10, 32)
+		if err != nil {
+			panic(os.Getenv(key))
+		}
+		i = int(i64)
+	} else {
+		i = def
 	}
 
-	i, err := strconv.ParseInt(os.Getenv(key), 10, 32)
-	if err != nil {
-		panic(os.Getenv(key))
+	if !noticeOnce[key] {
+		fmt.Printf(hint, v)
+		noticeOnce[key] = true
 	}
 
-	return int(i)
+	return
 }

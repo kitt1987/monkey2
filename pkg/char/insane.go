@@ -37,7 +37,7 @@ func (m *insaneMonkey) StartWork(stopC <-chan struct{}) {
 			m.work()
 
 			idle := randomCoffeeTime()
-			fmt.Printf("☕️ coffee time: %s", idle)
+			fmt.Printf("☕️ coffee time: %s\n", idle)
 			m.idle.Reset(idle)
 		case <-stopC:
 			m.Halt()
