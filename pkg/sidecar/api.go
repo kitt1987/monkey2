@@ -30,6 +30,7 @@ func New(name string, arg ...string) (r *Runner) {
 	r.ctx, r.kill = context.WithCancel(context.Background())
 	r.proc = exec.CommandContext(r.ctx, name, arg...)
 	r.proc.Env = os.Environ()
+	r.proc.Dir = conf.Worktree()
 	return
 }
 
