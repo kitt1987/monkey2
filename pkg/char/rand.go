@@ -8,13 +8,13 @@ import (
 	"time"
 )
 
-func randomFSOp() (fsObj op.FileSystemObject, fsOP op.FileSystemOP) {
+func randomFSOp() (fsObj op.WorktreeObject, fsOP op.WorktreeOP) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	fsObj = op.FileSystemObject(r.Intn(op.TotalFSObject))
+	fsObj = op.WorktreeObject(r.Intn(op.TotalFSObject))
 	if fsObj == op.FSFile {
-		fsOP = op.FileSystemOP(r.Intn(op.TotalFSOP))
+		fsOP = op.WorktreeOP(r.Intn(op.TotalFSOP))
 	} else {
-		fsOP = op.FileSystemOP(r.Intn(op.TotalFSOP - 1))
+		fsOP = op.WorktreeOP(r.Intn(op.TotalFSOP - 1))
 	}
 
 	return

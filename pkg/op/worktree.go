@@ -12,6 +12,10 @@ type Worktree struct {
 	baseDir string
 }
 
+func (w Worktree) Apply(ob WorktreeObject, op WorktreeOP, args *WorktreeOPArgs) {
+	
+}
+
 func (w Worktree) NewFile(name, text string) {
 	path := w.completePath(name)
 	if err := ioutil.WriteFile(path, []byte(text), 0755); err != nil {
