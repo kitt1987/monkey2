@@ -36,6 +36,6 @@ type WorktreeOPArgs struct {
 	RelativeRenamedFile string
 	RelativeRenamedDir  string
 	Content             string
-	WriteOffset         int64
-	OverriddenLen       int64
+	Offset              int64
+	Size                int64
 }

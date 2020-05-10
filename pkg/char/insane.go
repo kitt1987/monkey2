@@ -43,5 +43,6 @@ func (m *insaneMonkey) StartWork(stopC <-chan struct{}) {
 }
 
 func (m *insaneMonkey) work() {
-
+	ob, op := randomFSOp()
+	m.worktree.Apply(ob, op, )
 }

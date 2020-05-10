@@ -26,11 +26,13 @@ func (w Worktree) Apply(ob WorktreeObject, op WorktreeOP, args *WorktreeOPArgs) 
 func (w Worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 	switch op {
 	case FSCreate:
+		w.CreateFile(args.RelativeFilePath, args.Content)
 	case FSDelete:
-		w.Delete(args.RelativePath)
+		w.Delete(args.RelativeFilePath)
 	case FSRename:
-		w.Rename(args.RelativePath, args.RelativeRenamedFile)
+		w.Rename(args.RelativeFilePath, args.RelativeRenamedFile)
 	case FSOverride:
+		w.OverrideFile(args.RelativeFilePath, args.Content, args.Offset, args.Size)
 	default:
 		panic(op)
 	}
@@ -39,16 +41,17 @@ func (w Worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 func (w Worktree) applyDir(op WorktreeOP, args *WorktreeOPArgs) {
 	switch op {
 	case FSCreate:
+		w.MakeDir(args.RelativeDirPath)
 	case FSDelete:
-		w.Delete(args.RelativePath)
+		w.Delete(args.RelativeDirPath)
 	case FSRename:
-		w.Rename(args.RelativePath, args.RelativeRenamedDir)
+		w.Rename(args.RelativeDirPath, args.RelativeRenamedDir)
 	default:
 		panic(op)
 	}
 }
 
-func (w Worktree) NewFile(name, text string) {
+func (w Worktree) CreateFile(name, text string) {
 	path := w.completePath(name)
 	if err := ioutil.WriteFile(path, []byte(text), 0755); err != nil {
 		w.panic(path, err)
@@ -123,7 +126,7 @@ func (w Worktree) OverrideFile(name, text string, off, size int64) {
 	}
 }
 
-func (w Worktree) NewDir(name string) {
+func (w Worktree) MakeDir(name string) {
 	path := w.completePath(name)
 	if err := os.MkdirAll(path, 0755); err != nil {
 		w.panic(path, err)
