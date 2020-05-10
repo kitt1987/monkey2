@@ -7,8 +7,10 @@ import (
 	"time"
 )
 
-func Insane() Monkey {
-	m := &insaneMonkey{}
+func Insane(worktree string) Monkey {
+	m := &insaneMonkey{
+		worktree: op.NewWorktree(worktree),
+	}
 	return m
 }
 

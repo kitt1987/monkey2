@@ -8,6 +8,10 @@ import (
 	"path/filepath"
 )
 
+func NewWorktree(workDir string) *Worktree {
+	return &Worktree{baseDir: workDir}
+}
+
 type Worktree struct {
 	baseDir string
 }

@@ -8,9 +8,9 @@ import (
 
 const (
 	EnvCoffeeTimeUpperBound = "COFFEE_TIME"
-	EnvNameLength = "NAME_LENGTH"
-	EnvWriteOnlyLength = "LENGTH_WRITE_ONCE"
-	EnvPercentageFileOP = "PERCENTAGE_FILE_OPERATION"
+	EnvNameLength           = "NAME_LENGTH"
+	EnvWriteOnlyLength      = "LENGTH_WRITE_ONCE"
+	EnvPercentageFileOP     = "PERCENTAGE_FILE_OPERATION"
 )
 
 func CoffeeTimeUpperBound() string {
