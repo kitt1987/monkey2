@@ -34,10 +34,15 @@ func randomItem(c []string) string {
 	return c[randomN(len(c))]
 }
 
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const letterBytes = `"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@#$%^&*()-=_+\][{}|;'":/.,<>?`+"\n"
 
 func randomText(size int) string {
-	rand.Read()
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	b := make([]byte, size)
+	for i := range b {
+		b[i] = letterBytes[r.Intn(len(letterBytes))]
+	}
+	return string(b)
 }
 
 func randomN(n int) int {

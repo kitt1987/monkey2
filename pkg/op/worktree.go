@@ -68,12 +68,17 @@ func (w Worktree) Apply(ob WorktreeObject, op WorktreeOP, args *WorktreeOPArgs) 
 func (w Worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 	switch op {
 	case FSCreate:
+		fmt.Printf(`⌨️ Create file "%s" with content:`+"\n%s", args.NewRelativeFilePath, args.Content)
 		w.createFile(args.NewRelativeFilePath, args.Content)
 	case FSDelete:
+		fmt.Printf(`⌨️ Unlink "%s"`, args.ExistedRelativeFilePath)
 		w.delete(args.ExistedRelativeFilePath)
 	case FSRename:
+		fmt.Printf(`⌨️ Rename file "%s" to "%s"`, args.ExistedRelativeFilePath, args.NewRelativeFilePath)
 		w.rename(args.ExistedRelativeFilePath, args.NewRelativeFilePath)
 	case FSOverride:
+		fmt.Printf(`⌨️ Overwrite file "%s", replace %d bytes content from %d with ` + "\n%s",
+			args.ExistedRelativeFilePath, args.Size, args.Offset, args.Content)
 		w.overrideFile(args.ExistedRelativeFilePath, args.Content, args.Offset, args.Size)
 	default:
 		panic(op)
@@ -83,10 +88,13 @@ func (w Worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 func (w Worktree) applyDir(op WorktreeOP, args *WorktreeOPArgs) {
 	switch op {
 	case FSCreate:
+		fmt.Printf(`⌨️ Mkdir "%s"`, args.NewRelativeDirPath)
 		w.makeDir(args.NewRelativeDirPath)
 	case FSDelete:
+		fmt.Printf(`⌨️ Unlink "%s"`, args.ExistedRelativeDirPath)
 		w.delete(args.ExistedRelativeDirPath)
 	case FSRename:
+		fmt.Printf(`⌨️ Rename dir "%s" to "%s"`, args.ExistedRelativeDirPath, args.NewRelativeDirPath)
 		w.rename(args.ExistedRelativeDirPath, args.NewRelativeDirPath)
 	default:
 		panic(op)
