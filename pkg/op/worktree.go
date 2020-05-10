@@ -26,13 +26,13 @@ func (w Worktree) Apply(ob WorktreeObject, op WorktreeOP, args *WorktreeOPArgs) 
 func (w Worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 	switch op {
 	case FSCreate:
-		w.CreateFile(args.RelativeFilePath, args.Content)
+		w.CreateFile(args.NewRelativeFilePath, args.Content)
 	case FSDelete:
-		w.Delete(args.RelativeFilePath)
+		w.Delete(args.ExistedRelativeFilePath)
 	case FSRename:
-		w.Rename(args.RelativeFilePath, args.RelativeRenamedFile)
+		w.Rename(args.ExistedRelativeFilePath, args.NewRelativeFilePath)
 	case FSOverride:
-		w.OverrideFile(args.RelativeFilePath, args.Content, args.Offset, args.Size)
+		w.OverrideFile(args.ExistedRelativeFilePath, args.Content, args.Offset, args.Size)
 	default:
 		panic(op)
 	}
@@ -41,11 +41,11 @@ func (w Worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 func (w Worktree) applyDir(op WorktreeOP, args *WorktreeOPArgs) {
 	switch op {
 	case FSCreate:
-		w.MakeDir(args.RelativeDirPath)
+		w.MakeDir(args.NewRelativeDirPath)
 	case FSDelete:
-		w.Delete(args.RelativeDirPath)
+		w.Delete(args.ExistedRelativeDirPath)
 	case FSRename:
-		w.Rename(args.RelativeDirPath, args.RelativeRenamedDir)
+		w.Rename(args.ExistedRelativeDirPath, args.NewRelativeDirPath)
 	default:
 		panic(op)
 	}
