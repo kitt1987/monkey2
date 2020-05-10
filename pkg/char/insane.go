@@ -44,16 +44,37 @@ func (m *insaneMonkey) StartWork(stopC <-chan struct{}) {
 }
 
 func (m *insaneMonkey) work() {
-	ob, op := randomFSOp(
-		WorktreeObjectBias{op.FSFile: PercentageWithoutSign(conf.PercentageFileOP())},
-		WorktreeOPBias{},
-	)
+	obBias := NewObjectBias()
+	obBias.Set(int(op.FSFile), conf.PercentageFileOP())
+	obBias.Set(int(op.FSDir), 100 - conf.PercentageFileOP())
 
-	m.worktree.Apply(ob, op, m.prepareArgs())
+	allDirs := m.worktree.AllDirs()
+	dirOpBias := NewDirOPBias()
+	if len(allDirs) == 0 {
+		dirOpBias.Set(int(op.FSCreate), 100)
+	} else {
+		dirOpBias.Set(int(op.FSCreate), 34)
+		dirOpBias.Set(int(op.FSDelete), 33)
+		dirOpBias.Set(int(op.FSRename), 33)
+	}
+
+	allFiles := m.worktree.AllFiles()
+	fileOpBias := NewFileOPBias()
+	if len(allFiles) == 0 {
+		fileOpBias.Set(int(op.FSCreate), 100)
+	} else {
+		fileOpBias.Set(int(op.FSCreate), 25)
+		fileOpBias.Set(int(op.FSDelete), 25)
+		fileOpBias.Set(int(op.FSRename), 25)
+		fileOpBias.Set(int(op.FSOverride), 25)
+	}
+
+	ob, op := randomFSOp(obBias, dirOpBias, fileOpBias)
+	m.worktree.Apply(ob, op, m.prepareArgs(allFiles, allDirs))
 }
 
-func (m *insaneMonkey) prepareArgs() *op.WorktreeOPArgs {
-	f := randomItem(m.worktree.AllFiles())
+func (m *insaneMonkey) prepareArgs(allFiles, allDirs []string) *op.WorktreeOPArgs {
+	f := randomItem(allFiles)
 	size := m.worktree.FileSize(f)
 	offset := randomN64(size)
 
@@ -61,7 +82,7 @@ func (m *insaneMonkey) prepareArgs() *op.WorktreeOPArgs {
 		NewRelativeFilePath:     "f-" + randomText(conf.NameLength()),
 		ExistedRelativeFilePath: f,
 		NewRelativeDirPath:      "d-" + randomText(conf.NameLength()),
-		ExistedRelativeDirPath:  randomItem(m.worktree.AllDirs()),
+		ExistedRelativeDirPath:  randomItem(allDirs),
 		Content:                 randomText(randomN(conf.WriteOnceLengthUpperBound())),
 		Offset:                  offset,
 		Size:                    randomN64(size - offset),
