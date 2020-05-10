@@ -21,7 +21,7 @@ var noticeOnce = make(map[string]bool)
 
 func notice(key string, hint string, v interface{}) {
 	if !noticeOnce[key] {
-		fmt.Printf(hint + `.Set environment variable "%s" to change.` + "\n", v, key)
+		fmt.Printf(hint + `. Set environment variable "%s" to change.` + "\n", v, key)
 		noticeOnce[key] = true
 	}
 }
