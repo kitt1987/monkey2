@@ -48,6 +48,7 @@ func (m *insaneMonkey) work() {
 		WorktreeObjectBias{op.FSFile: PercentageWithoutSign(conf.PercentageFileOP())},
 		WorktreeOPBias{},
 	)
+
 	m.worktree.Apply(ob, op, m.prepareArgs())
 }
 

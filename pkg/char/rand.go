@@ -8,11 +8,60 @@ import (
 	"time"
 )
 
-type percentageWithoutSign
+const FullPercent = PercentageWithoutSign(100)
+type PercentageWithoutSign uint
 
-type worktreeObjectBias map[op.WorktreeObject]int
+func (p PercentageWithoutSign) Validate() {
+	if p > 100 {
+		panic(p)
+	}
+}
 
-func randomFSOp() (fsObj op.WorktreeObject, fsOP op.WorktreeOP) {
+type WorktreeObjectBias []PercentageWithoutSign
+
+func NewObjectBias() WorktreeObjectBias {
+	return make([]PercentageWithoutSign, op.TotalFSObject)
+}
+
+func (b WorktreeObjectBias) Set(ob op.WorktreeObject, percentage PercentageWithoutSign) {
+	b[int(ob)] = percentage
+}
+
+func (b WorktreeObjectBias) Complete() {
+	base := PercentageWithoutSign(0)
+	for i, v := range b {
+		base += v
+		b[i] = base
+	}
+
+	if base != FullPercent {
+		panic(b)
+	}
+}
+
+func (b WorktreeObjectBias) RandomObject() op.WorktreeObject {
+	indicator := randomN(100)
+}
+
+type WorktreeOPBias []PercentageWithoutSign
+
+func NewFileOPBias() WorktreeOPBias {
+	return make([]PercentageWithoutSign, op.TotalFSOP)
+}
+
+func NewDirOPBias() WorktreeOPBias {
+	return make([]PercentageWithoutSign, op.TotalFSOP-1)
+}
+
+func (b WorktreeOPBias) Set(op op.WorktreeOP, percentage PercentageWithoutSign) {
+	b[int(op)] = percentage
+}
+
+func (b WorktreeOPBias) Complete(ob op.WorktreeObject) {
+
+}
+
+func randomFSOp(obBias WorktreeObjectBias, opBias WorktreeOPBias) (fsObj op.WorktreeObject, fsOP op.WorktreeOP) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	fsObj = op.WorktreeObject(r.Intn(op.TotalFSObject))
 	if fsObj == op.FSFile {
