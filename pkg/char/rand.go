@@ -29,3 +29,23 @@ func randomCoffeeTime() time.Duration {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	return time.Duration(r.Intn(int(du.Seconds()))) * time.Second
 }
+
+func randomItem(c []string) string {
+	return c[randomN(len(c))]
+}
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+func randomText(size int) string {
+	rand.Read()
+}
+
+func randomN(n int) int {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	return r.Intn(n)
+}
+
+func randomN64(n int64) int64 {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	return r.Int63n(n)
+}

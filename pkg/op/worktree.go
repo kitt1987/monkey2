@@ -12,12 +12,46 @@ type Worktree struct {
 	baseDir string
 }
 
-func (w Worktree) AllDirs() []string {
+func (w Worktree) readDir() (dirs, files []string) {
+	parents := []string{""}
+	for _, parent := range parents {
+		path := w.completePath(parent)
+		fis, err := ioutil.ReadDir(path)
+		if err != nil {
+			w.panic(parent, err)
+		}
 
+		for _, fi := range fis {
+			if fi.IsDir() {
+				parents = append(parents, filepath.Join(parent, fi.Name()))
+			} else {
+				files = append(files, filepath.Join(parent, fi.Name()))
+			}
+		}
+	}
+
+	dirs = parents[1:]
+	return
+}
+
+func (w Worktree) AllDirs() []string {
+	dirs, _ := w.readDir()
+	return dirs
 }
 
 func (w Worktree) AllFiles() []string {
+	_, files := w.readDir()
+	return files
+}
 
+func (w Worktree) FileSize(relativePath string) int64 {
+	path := w.completePath(relativePath)
+	fi, err := os.Lstat(path)
+	if err != nil {
+		w.panic(path, err)
+	}
+
+	return fi.Size()
 }
 
 func (w Worktree) Apply(ob WorktreeObject, op WorktreeOP, args *WorktreeOPArgs) {

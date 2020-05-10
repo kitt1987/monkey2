@@ -2,6 +2,7 @@ package char
 
 import (
 	"fmt"
+	"github.com/git-roll/monkey2/pkg/conf"
 	"github.com/git-roll/monkey2/pkg/op"
 	"time"
 )
@@ -48,5 +49,17 @@ func (m *insaneMonkey) work() {
 }
 
 func (m *insaneMonkey) prepareArgs() *op.WorktreeOPArgs {
+	f := randomItem(m.worktree.AllFiles())
+	size := m.worktree.FileSize(f)
+	offset := randomN64(size)
 
+	return &op.WorktreeOPArgs{
+		NewRelativeFilePath:     "f-" + randomText(conf.NameLength()),
+		ExistedRelativeFilePath: f,
+		NewRelativeDirPath:      "d-" + randomText(conf.NameLength()),
+		ExistedRelativeDirPath:  randomItem(m.worktree.AllDirs()),
+		Content:                 randomText(randomN(conf.WriteOnceLengthUpperBound())),
+		Offset:                  offset,
+		Size:                    randomN64(size - offset),
+	}
 }

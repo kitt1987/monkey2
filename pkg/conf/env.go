@@ -2,11 +2,14 @@ package conf
 
 import (
 	"os"
+	"strconv"
 	"time"
 )
 
 const (
-	EnvCoffeeTimeUpperBound = "COFFEE_TIME_UPPER_BOUND"
+	EnvCoffeeTimeUpperBound = "COFFEE_TIME"
+	EnvNameLength = "NAME_LENGTH"
+	EnvWriteOnlyLength = "LENGTH_WRITE_ONCE"
 )
 
 func CoffeeTimeUpperBound() string {
@@ -16,4 +19,21 @@ func CoffeeTimeUpperBound() string {
 	}
 
 	return time.Minute.String()
+}
+
+func NameLength() int {
+	return envInt(EnvNameLength)
+}
+
+func WriteOnceLengthUpperBound() int {
+	return envInt(EnvWriteOnlyLength)
+}
+
+func envInt(key string) int {
+	i, err := strconv.ParseInt(os.Getenv(key), 10, 32)
+	if err != nil {
+		panic(os.Getenv(key))
+	}
+
+	return int(i)
 }
