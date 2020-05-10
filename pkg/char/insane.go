@@ -74,8 +74,8 @@ func (m *insaneMonkey) work() {
 
 func (m *insaneMonkey) prepareArgs(allFiles, allDirs []string) *op.WorktreeOPArgs {
 	args := &op.WorktreeOPArgs{
-		NewRelativeFilePath: "f-" + randomText(conf.NameLength()),
-		NewRelativeDirPath:  "d-" + randomText(conf.NameLength()),
+		NewRelativeFilePath: "f-" + randomName(conf.NameLength()),
+		NewRelativeDirPath:  "d-" + randomName(conf.NameLength()),
 		Content:             randomText(randomN(conf.WriteOnceLengthUpperBound())),
 	}
 

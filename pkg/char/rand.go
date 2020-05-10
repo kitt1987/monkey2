@@ -101,13 +101,22 @@ func randomItem(c []string) string {
 	return c[randomN(len(c))]
 }
 
-const letterBytes = `"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@#$%^&*()-=_+\][{}|;'":/.,<>?`+"\n"
+const contentBytes = `"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@#$%^&*()-=_+\][{}|;'":/.,<>?`+"\n"
+const nameBytes = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.`
+
+func randomName(size int) string {
+	return randomString(nameBytes, size)
+}
 
 func randomText(size int) string {
+	return randomString(contentBytes, size)
+}
+
+func randomString(set string, size int) string {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	b := make([]byte, size)
 	for i := range b {
-		b[i] = letterBytes[r.Intn(len(letterBytes))]
+		b[i] = set[r.Intn(len(set))]
 	}
 	return string(b)
 }
