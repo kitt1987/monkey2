@@ -6,6 +6,7 @@ import (
 	"github.com/git-roll/monkey2/pkg/conf"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 type Car interface {
@@ -69,6 +70,7 @@ func (r *Runner) Start() error {
 	r.proc.Stderr = f
 
 	go func() {
+		fmt.Printf(`🚁 Start sidecar "%s"`+"\n", strings.Join(r.proc.Args, " "))
 		r.done<-r.proc.Run()
 		close(r.done)
 	}()

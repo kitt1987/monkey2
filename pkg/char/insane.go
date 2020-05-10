@@ -48,7 +48,7 @@ func (m *insaneMonkey) StartWork(stopC <-chan struct{}) {
 func (m *insaneMonkey) work() {
 	obBias := NewObjectBias()
 	obBias.Set(int(op.FSFile), conf.PercentageFileOP())
-	obBias.Set(int(op.FSDir), 100 - conf.PercentageFileOP())
+	obBias.Set(int(op.FSDir), 100-conf.PercentageFileOP())
 
 	allDirs := m.worktree.AllDirs()
 	dirOpBias := NewDirOPBias()
@@ -76,17 +76,22 @@ func (m *insaneMonkey) work() {
 }
 
 func (m *insaneMonkey) prepareArgs(allFiles, allDirs []string) *op.WorktreeOPArgs {
-	f := randomItem(allFiles)
-	size := m.worktree.FileSize(f)
-	offset := randomN64(size)
-
-	return &op.WorktreeOPArgs{
-		NewRelativeFilePath:     "f-" + randomText(conf.NameLength()),
-		ExistedRelativeFilePath: f,
-		NewRelativeDirPath:      "d-" + randomText(conf.NameLength()),
-		ExistedRelativeDirPath:  randomItem(allDirs),
-		Content:                 randomText(randomN(conf.WriteOnceLengthUpperBound())),
-		Offset:                  offset,
-		Size:                    randomN64(size - offset),
+	args := &op.WorktreeOPArgs{
+		NewRelativeFilePath: "f-" + randomText(conf.NameLength()),
+		NewRelativeDirPath:  "d-" + randomText(conf.NameLength()),
+		Content:             randomText(randomN(conf.WriteOnceLengthUpperBound())),
 	}
+
+	if len(allFiles) > 0 {
+		args.ExistedRelativeFilePath = randomItem(allFiles)
+		size := m.worktree.FileSize(args.ExistedRelativeFilePath)
+		args.Offset = randomN64(size)
+		args.Size = randomN64(size - args.Offset)
+	}
+
+	if len(allDirs) > 0 {
+		args.ExistedRelativeDirPath = randomItem(allDirs)
+	}
+
+	return args
 }
