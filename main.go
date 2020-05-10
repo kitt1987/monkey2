@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/git-roll/monkey2/pkg/char"
 	"github.com/git-roll/monkey2/pkg/conf"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"os"
 	"os/signal"
 	"syscall"
-	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 const Usage = `monkey [name], the name could be [insane].
@@ -35,12 +35,15 @@ func main() {
 
 	stopC := make(chan struct{})
 	wg := wait.Group{}
-	wg.StartWithChannel(stopC, roll.Run)
-	monkey.StartWork()
+	wg.StartWithChannel(stopC, monkey.StartWork)
 
 	for {
 		select {
 		case <-signCh:
+			signal.Stop(signCh)
+			close(stopC)
 		}
 	}
+
+	wg.Wait()
 }

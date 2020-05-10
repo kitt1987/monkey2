@@ -11,6 +11,8 @@ const (
 	EnvNameLength           = "NAME_LENGTH"
 	EnvWriteOnlyLength      = "LENGTH_WRITE_ONCE"
 	EnvPercentageFileOP     = "PERCENTAGE_FILE_OPERATION"
+	EnvWorktree             = "WORKTREE"
+	EnvSidecarStdFile       = "SIDECAR_STD_FILE"
 )
 
 func CoffeeTimeUpperBound() string {
@@ -20,6 +22,14 @@ func CoffeeTimeUpperBound() string {
 	}
 
 	return time.Minute.String()
+}
+
+func Worktree() string {
+	return os.Getenv(EnvWorktree)
+}
+
+func SidecarStdFile() string {
+	return os.Getenv(EnvSidecarStdFile)
 }
 
 func NameLength() int {
