@@ -5,6 +5,7 @@ import (
 	"github.com/git-roll/monkey2/pkg/conf"
 	"github.com/git-roll/monkey2/pkg/op"
 	"math/rand"
+	"sort"
 	"time"
 )
 
@@ -17,57 +18,70 @@ func (p PercentageWithoutSign) Validate() {
 	}
 }
 
-type WorktreeObjectBias []PercentageWithoutSign
+type PercentageDistribution []PercentageWithoutSign
 
-func NewObjectBias() WorktreeObjectBias {
-	return make([]PercentageWithoutSign, op.TotalFSObject)
+func (b PercentageDistribution) Len() int {
+	return len(b)
 }
 
-func (b WorktreeObjectBias) Set(ob op.WorktreeObject, percentage PercentageWithoutSign) {
-	b[int(ob)] = percentage
+func (b PercentageDistribution) Less(i, j int) bool {
+	return b[i] < b[j]
 }
 
-func (b WorktreeObjectBias) Complete() {
+func (b PercentageDistribution) Swap(i, j int) {
+	b[i], b[j] = b[j], b[i]
+}
+
+func (b PercentageDistribution) Set(id int, percentage int) {
+	b[id] = PercentageWithoutSign(percentage)
+}
+
+func (b PercentageDistribution) Complete() {
 	base := PercentageWithoutSign(0)
 	for i, v := range b {
 		base += v
 		b[i] = base
 	}
 
-	if base != FullPercent {
+	if base != FullPercent || !sort.IsSorted(b) {
 		panic(b)
 	}
 }
 
-func (b WorktreeObjectBias) RandomObject() op.WorktreeObject {
-	indicator := randomN(100)
+func (b PercentageDistribution) RandomObject() (i int) {
+	indicator := PercentageWithoutSign(randomN(100))
+	var p PercentageWithoutSign
+	for i, p = range b {
+		if indicator < p {
+			break
+		}
+	}
+
+	return
 }
 
-type WorktreeOPBias []PercentageWithoutSign
+func NewObjectBias() PercentageDistribution {
+	return make([]PercentageWithoutSign, op.TotalFSObject)
+}
 
-func NewFileOPBias() WorktreeOPBias {
+func NewFileOPBias() PercentageDistribution {
 	return make([]PercentageWithoutSign, op.TotalFSOP)
 }
 
-func NewDirOPBias() WorktreeOPBias {
+func NewDirOPBias() PercentageDistribution {
 	return make([]PercentageWithoutSign, op.TotalFSOP-1)
 }
 
-func (b WorktreeOPBias) Set(op op.WorktreeOP, percentage PercentageWithoutSign) {
-	b[int(op)] = percentage
-}
+func randomFSOp(obBias, fileBias, dirBias PercentageDistribution) (fsObj op.WorktreeObject, fsOP op.WorktreeOP) {
+	obBias.Complete()
+	fileBias.Complete()
+	dirBias.Complete()
 
-func (b WorktreeOPBias) Complete(ob op.WorktreeObject) {
-
-}
-
-func randomFSOp(obBias WorktreeObjectBias, opBias WorktreeOPBias) (fsObj op.WorktreeObject, fsOP op.WorktreeOP) {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	fsObj = op.WorktreeObject(r.Intn(op.TotalFSObject))
+	fsObj = op.WorktreeObject(obBias.RandomObject())
 	if fsObj == op.FSFile {
-		fsOP = op.WorktreeOP(r.Intn(op.TotalFSOP))
+		fsOP = op.WorktreeOP(fileBias.RandomObject())
 	} else {
-		fsOP = op.WorktreeOP(r.Intn(op.TotalFSOP - 1))
+		fsOP = op.WorktreeOP(dirBias.RandomObject())
 	}
 
 	return
