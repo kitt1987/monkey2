@@ -86,16 +86,25 @@ func (w Worktree) Apply(ob WorktreeObject, op WorktreeOP, args *WorktreeOPArgs) 
 func (w Worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 	switch op {
 	case FSCreate:
-		fmt.Printf(`💻 Create file "%s" with content:`+"\n%s", args.NewRelativeFilePath, args.Content)
+		fmt.Printf(`💻 Create file "%s" with content:
++++
+%s
++++
+`, args.NewRelativeFilePath, args.Content)
+
 		w.createFile(args.NewRelativeFilePath, args.Content)
 	case FSDelete:
-		fmt.Printf(`💻 Unlink "%s"`, args.ExistedRelativeFilePath)
+		fmt.Printf(`💻 Unlink "%s"`+"\n", args.ExistedRelativeFilePath)
 		w.delete(args.ExistedRelativeFilePath)
 	case FSRename:
-		fmt.Printf(`💻️ Rename file "%s" to "%s"`, args.ExistedRelativeFilePath, args.NewRelativeFilePath)
+		fmt.Printf(`💻️ Rename file "%s" to "%s"`+"\n", args.ExistedRelativeFilePath, args.NewRelativeFilePath)
 		w.rename(args.ExistedRelativeFilePath, args.NewRelativeFilePath)
 	case FSOverride:
-		fmt.Printf(`💻️ Overwrite file "%s", replace %d bytes content from %d with ` + "\n%s",
+		fmt.Printf(`💻️ Overwrite file "%s", replace %d bytes content from byte %d with:
++++
+%s
++++
+`,
 			args.ExistedRelativeFilePath, args.Size, args.Offset, args.Content)
 		w.overrideFile(args.ExistedRelativeFilePath, args.Content, args.Offset, args.Size)
 	default:
@@ -106,13 +115,13 @@ func (w Worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 func (w Worktree) applyDir(op WorktreeOP, args *WorktreeOPArgs) {
 	switch op {
 	case FSCreate:
-		fmt.Printf(`💻 Mkdir "%s"`, args.NewRelativeDirPath)
+		fmt.Printf(`💻 Mkdir "%s"`+"\n", args.NewRelativeDirPath)
 		w.makeDir(args.NewRelativeDirPath)
 	case FSDelete:
-		fmt.Printf(`💻 Unlink "%s"`, args.ExistedRelativeDirPath)
+		fmt.Printf(`💻 Unlink "%s"`+"\n", args.ExistedRelativeDirPath)
 		w.delete(args.ExistedRelativeDirPath)
 	case FSRename:
-		fmt.Printf(`💻 Rename dir "%s" to "%s"`, args.ExistedRelativeDirPath, args.NewRelativeDirPath)
+		fmt.Printf(`💻 Rename dir "%s" to "%s"`+"\n", args.ExistedRelativeDirPath, args.NewRelativeDirPath)
 		w.rename(args.ExistedRelativeDirPath, args.NewRelativeDirPath)
 	default:
 		panic(op)
@@ -146,7 +155,7 @@ func (w Worktree) overrideFile(name, text string, off, size int64) {
 
 	var overriddenBuf []byte
 	if overriddenLen > 0 {
-		overriddenBuf = make([]byte, 0, overriddenLen)
+		overriddenBuf = make([]byte, overriddenLen)
 		offset := off
 		var n int64
 		var err error
@@ -217,12 +226,7 @@ func (w Worktree) rename(origin, target string) {
 }
 
 func (w Worktree) completePath(name string) (path string) {
-	path = filepath.Join(w.baseDir, name)
-	if _, err := os.Lstat(path); !os.IsNotExist(err) {
-		panic(path)
-	}
-
-	return
+	return filepath.Join(w.baseDir, name)
 }
 
 func (w Worktree) panic(path string, err error) {

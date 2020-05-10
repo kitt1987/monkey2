@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/git-roll/monkey2/pkg/char"
 	"github.com/git-roll/monkey2/pkg/conf"
-	"github.com/git-roll/monkey2/pkg/sidecar"
+	"github.com/git-roll/monkey2/pkg/side"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"os"
 	"os/signal"
@@ -38,31 +38,34 @@ func main() {
 		return
 	}
 
-	var sc *sidecar.Runner
-	if len(os.Args) > 2 {
-		sc = sidecar.New(os.Args[2], os.Args[2:]...)
-		err := sc.Start()
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-	}
+	sidecar := side.NewCar()
+	sidecar.Start()
 
 	stopC := make(chan struct{})
 	wg := wait.Group{}
 	wg.StartWithChannel(stopC, monkey.StartWork)
-	defer func() {
-		wg.Wait()
-		if sc != nil {
-			sc.Kill()
-		}
-	}()
 
 	for {
 		select {
-		case <-signCh:
+		case err, _ := <-sidecar.Done():
+			if err != nil {
+				fmt.Printf("🩸 Sidecar broke!")
+			}
+
 			signal.Stop(signCh)
 			close(stopC)
+			wg.Wait()
+			return
+
+		case _, ok := <-signCh:
+			if !ok {
+				return
+			}
+
+			signal.Stop(signCh)
+			close(stopC)
+			wg.Wait()
+			sidecar.Kill()
 			return
 		}
 	}

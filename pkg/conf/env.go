@@ -21,7 +21,7 @@ var noticeOnce = make(map[string]bool)
 
 func notice(key string, hint string, v interface{}) {
 	if !noticeOnce[key] {
-		fmt.Printf(hint, v)
+		fmt.Printf(hint + `. Set environment variable "%s" to change.` + "\n", v, key)
 		noticeOnce[key] = true
 	}
 }
@@ -32,7 +32,7 @@ func CoffeeTimeUpperBound() string {
 		v = time.Minute.String()
 	}
 
-	notice(EnvWorktree, `🚁 Coffee time would be up to %s`+"\n", v)
+	notice(EnvCoffeeTimeUpperBound, `🚁 Coffee time would be up to %s`, v)
 	return v
 }
 
@@ -42,7 +42,7 @@ func Worktree() string {
 		wt = filepath.Join(os.TempDir(), "monkey")
 	}
 
-	notice(EnvWorktree, `🚁 The workdir will be "%s"`+"\n", wt)
+	notice(EnvWorktree, `🚁 The workdir will be "%s"`, wt)
 	return wt
 }
 
@@ -52,24 +52,24 @@ func SidecarStdFile() string {
 		std = filepath.Join(os.TempDir(), "monkey.sidecar")
 	}
 
-	notice(EnvSidecarStdFile, `🚁 Stdout of the sidecar will be written to "%s"`+"\n", std)
+	notice(EnvSidecarStdFile, `🚁 Stdout of the sidecar will be written to "%s"`, std)
 	return std
 }
 
 func NameLength() int {
-	return envInt(EnvNameLength, 8, `🚁 Length of file/dir name would be %d`+"\n")
+	return envInt(EnvNameLength, 8, `🚁 Length of file/dir name would be %d`)
 }
 
 func WriteOnceLengthUpperBound() int {
 	return envInt(
 		EnvWriteOnceLength, 2048,
-		`🚁 Length of each file write would be %d`+"\n",
+		`🚁 Length of each file write would be %d`,
 	)
 }
 
 func PercentageFileOP() int {
 	return envInt(EnvPercentageFileOP, 70,
-		`🚁 %s%% filesystem operations would be on files`+"\n",
+		`🚁 %d%% filesystem operations would be on files`,
 		)
 }
 
