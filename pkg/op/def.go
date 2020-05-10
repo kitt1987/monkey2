@@ -31,11 +31,11 @@ func (o WorktreeObject) String() string {
 }
 
 type WorktreeOPArgs struct {
-	RelativeFilePath    string
-	RelativeDirPath     string
-	RelativeRenamedFile string
-	RelativeRenamedDir  string
-	Content             string
-	Offset              int64
-	Size                int64
+	NewRelativeFilePath     string
+	ExistedRelativeFilePath string
+	NewRelativeDirPath      string
+	ExistedRelativeDirPath  string
+	Content                 string
+	Offset                  int64
+	Size                    int64
 }
