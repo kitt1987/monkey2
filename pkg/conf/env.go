@@ -10,6 +10,7 @@ const (
 	EnvCoffeeTimeUpperBound = "COFFEE_TIME"
 	EnvNameLength = "NAME_LENGTH"
 	EnvWriteOnlyLength = "LENGTH_WRITE_ONCE"
+	EnvPercentageFileOP = "PERCENTAGE_FILE_OPERATION"
 )
 
 func CoffeeTimeUpperBound() string {
@@ -27,6 +28,10 @@ func NameLength() int {
 
 func WriteOnceLengthUpperBound() int {
 	return envInt(EnvWriteOnlyLength)
+}
+
+func PercentageFileOP() int {
+	return envInt(EnvPercentageFileOP)
 }
 
 func envInt(key string) int {

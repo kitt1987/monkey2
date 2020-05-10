@@ -44,7 +44,10 @@ func (m *insaneMonkey) StartWork(stopC <-chan struct{}) {
 }
 
 func (m *insaneMonkey) work() {
-	ob, op := randomFSOp()
+	ob, op := randomFSOp(
+		WorktreeObjectBias{op.FSFile: PercentageWithoutSign(conf.PercentageFileOP())},
+		WorktreeOPBias{},
+	)
 	m.worktree.Apply(ob, op, m.prepareArgs())
 }
 

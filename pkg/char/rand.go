@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+type percentageWithoutSign
+
+type worktreeObjectBias map[op.WorktreeObject]int
+
 func randomFSOp() (fsObj op.WorktreeObject, fsOP op.WorktreeOP) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	fsObj = op.WorktreeObject(r.Intn(op.TotalFSObject))
