@@ -75,3 +75,11 @@ func (w worktree) applyDir(op WorktreeOP, args *WorktreeOPArgs) {
 		panic(op)
 	}
 }
+
+func (w worktree) validateFSStructure() {
+
+}
+
+func (w worktree) validateFile(name string) {
+
+}

@@ -8,26 +8,6 @@ import (
 	"path/filepath"
 )
 
-func NewWorktree(workDir string) Worktree {
-	fi, err := os.Lstat(workDir)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			panic(fmt.Sprintf("%s:%s", workDir, err))
-		}
-
-		err = os.MkdirAll(workDir, 0755)
-		if err != nil {
-			panic(fmt.Sprintf("%s:%s", workDir, err))
-		}
-	} else if !fi.IsDir() {
-		panic(fmt.Sprintf("%s:not a directory", workDir))
-	}
-
-	return &worktree{
-		under: &real{baseDir: workDir},
-	}
-}
-
 type real struct {
 	baseDir string
 }
@@ -159,6 +139,15 @@ func (w real) rename(origin, target string) {
 	if err := os.Rename(originPath, targetPath); err != nil {
 		w.panic(originPath, err)
 	}
+}
+
+func (w real) readFile(name string) string {
+	path := w.completePath(name)
+	bytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		w.panic(path, err)
+	}
+	return string(bytes)
 }
 
 func (w real) completePath(name string) (path string) {

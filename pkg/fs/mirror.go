@@ -9,21 +9,12 @@ type mirrorElem struct {
 
 type memMirror map[string]mirrorElem
 
-func (m memMirror) AllDirs() (dirs []string) {
+func (m memMirror) readDir() (dirs, files []string) {
 	dirs = make([]string, 0, len(m))
 	for p, e := range m {
 		if e.dir {
 			dirs = append(dirs, p)
-		}
-	}
-
-	return
-}
-
-func (m memMirror) AllFiles() (files []string) {
-	files = make([]string, 0, len(m))
-	for p, e := range m {
-		if !e.dir {
+		} else {
 			files = append(files, p)
 		}
 	}
@@ -31,7 +22,7 @@ func (m memMirror) AllFiles() (files []string) {
 	return
 }
 
-func (m memMirror) FileSize(relativePath string) int64 {
+func (m memMirror) size(relativePath string) int64 {
 	elem, found := m[relativePath]
 	if !found {
 		panic(fmt.Sprintf(`%s not found`, relativePath))
@@ -99,4 +90,17 @@ func (m memMirror) rename(origin, target string) {
 
 	delete(m, origin)
 	m[target] = elem
+}
+
+func (m memMirror) readFile(name string) string {
+	elem, found := m[name]
+	if !found {
+		panic(fmt.Sprintf(`%s not found`, name))
+	}
+
+	if elem.dir {
+		panic(fmt.Sprintf(`%s is a directory`, name))
+	}
+
+	return string(elem.content)
 }

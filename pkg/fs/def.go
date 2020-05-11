@@ -1,5 +1,10 @@
 package fs
 
+import (
+	"fmt"
+	"os"
+)
+
 type WorktreeOP int
 
 const (
@@ -55,4 +60,24 @@ type underneath interface {
 	makeDir(name string)
 	delete(name string)
 	rename(origin, target string)
+}
+
+func NewWorktree(workDir string) Worktree {
+	fi, err := os.Lstat(workDir)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			panic(fmt.Sprintf("%s:%s", workDir, err))
+		}
+
+		err = os.MkdirAll(workDir, 0755)
+		if err != nil {
+			panic(fmt.Sprintf("%s:%s", workDir, err))
+		}
+	} else if !fi.IsDir() {
+		panic(fmt.Sprintf("%s:not a directory", workDir))
+	}
+
+	return &worktree{
+		under: &real{baseDir: workDir},
+	}
 }
