@@ -79,6 +79,7 @@ func NewWorktree(workDir string) Worktree {
 	}
 
 	return &worktree{
-		under: &real{baseDir: workDir},
+		under:  &real{baseDir: workDir},
+		mirror: make(memMirror),
 	}
 }

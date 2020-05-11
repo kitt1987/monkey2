@@ -7,6 +7,10 @@ type mirrorElem struct {
 	content []byte
 }
 
+func newMirror(initDirs, initFiles []string) memMirror {
+
+}
+
 type memMirror map[string]mirrorElem
 
 func (m memMirror) readDir() (dirs, files []string) {

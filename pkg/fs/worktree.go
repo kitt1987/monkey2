@@ -22,6 +22,8 @@ func (w worktree) FileSize(relativePath string) int64 {
 }
 
 func (w worktree) Apply(ob WorktreeObject, op WorktreeOP, args *WorktreeOPArgs) {
+	w.validateFSStructure()
+
 	switch ob {
 	case File:
 		w.applyFile(op, args)
@@ -55,6 +57,8 @@ func (w worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 +++
 `,
 			args.ExistedRelativeFilePath, args.Size, args.Offset, args.Content)
+
+		w.validateFile(args.ExistedRelativeFilePath)
 		w.under.overrideFile(args.ExistedRelativeFilePath, args.Content, args.Offset, args.Size)
 	default:
 		panic(op)
@@ -84,12 +88,12 @@ func (w worktree) validateFSStructure() {
 
 	mirrorDirs, mirrorFiles := w.mirror.readDir()
 	dirs, files := w.under.readDir()
-	if !equalStringSlices(dirs, mirrorDirs) {
-		panic(fmt.Sprintf("mirror:%#v \n real:%#v", mirrorDirs, dirs))
+	if err := equalStringSlices(dirs, mirrorDirs); err != nil {
+		panic(fmt.Sprintf("err: %s\nmirror:%#v\nreal:%#v", err, mirrorDirs, dirs))
 	}
 
-	if !equalStringSlices(files, mirrorFiles) {
-		panic(fmt.Sprintf("mirror:%#v \n real:%#v", mirrorFiles, files))
+	if err := equalStringSlices(files, mirrorFiles); err != nil {
+		panic(fmt.Sprintf("err: %s\nmirror:%#v\nreal:%#v", err, mirrorFiles, files))
 	}
 }
 
@@ -105,6 +109,27 @@ func (w worktree) validateFile(name string) {
 	}
 }
 
-func equalStringSlices(a, b []string) bool {
+func equalStringSlices(a, b []string) error {
+	if len(a) != len(b) {
+		return fmt.Errorf("#a=%d, #b=%d", len(a), len(b))
+	}
 
+	mapA := make(map[string]bool, len(a))
+	for _, ai := range a {
+		if mapA[ai] {
+			return fmt.Errorf(`slice a has a duplicate value "%s"`, ai)
+		}
+
+		mapA[ai] = true
+	}
+
+	for _, bi := range b {
+		if !mapA[bi] {
+			return fmt.Errorf(`"%s" didn't found in slice a'`, bi)
+		}
+
+		delete(mapA, bi)
+	}
+
+	return nil
 }

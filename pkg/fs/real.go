@@ -22,6 +22,10 @@ func (w real) readDir() (dirs, files []string) {
 		}
 
 		for _, fi := range fis {
+			if fi.Name()[0] == '.' {
+				continue
+			}
+
 			if fi.IsDir() {
 				parents = append(parents, filepath.Join(parent, fi.Name()))
 			} else {
