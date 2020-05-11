@@ -23,14 +23,16 @@ func NewWorktree(workDir string) Worktree {
 		panic(fmt.Sprintf("%s:not a directory", workDir))
 	}
 
-	return &realWorktree{baseDir: workDir}
+	return &worktree{
+		under: &real{baseDir: workDir},
+	}
 }
 
-type realWorktree struct {
+type real struct {
 	baseDir string
 }
 
-func (w realWorktree) readDir() (dirs, files []string) {
+func (w real) readDir() (dirs, files []string) {
 	parents := []string{""}
 	for _, parent := range parents {
 		path := w.completePath(parent)
@@ -52,77 +54,7 @@ func (w realWorktree) readDir() (dirs, files []string) {
 	return
 }
 
-func (w realWorktree) AllDirs() []string {
-	dirs, _ := w.readDir()
-	return dirs
-}
-
-func (w realWorktree) AllFiles() []string {
-	_, files := w.readDir()
-	return files
-}
-
-func (w realWorktree) FileSize(relativePath string) int64 {
-	return w.size(relativePath)
-}
-
-func (w realWorktree) Apply(ob WorktreeObject, op WorktreeOP, args *WorktreeOPArgs) {
-	switch ob {
-	case File:
-		w.applyFile(op, args)
-	case Dir:
-		w.applyDir(op, args)
-	default:
-		panic(ob)
-	}
-}
-
-func (w realWorktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
-	switch op {
-	case Create:
-		fmt.Printf(`💻 Create file "%s" with content:
-+++
-%s
-+++
-`, args.NewRelativeFilePath, args.Content)
-
-		w.createFile(args.NewRelativeFilePath, args.Content)
-	case Delete:
-		fmt.Printf(`💻 Unlink "%s"`+"\n", args.ExistedRelativeFilePath)
-		w.delete(args.ExistedRelativeFilePath)
-	case Rename:
-		fmt.Printf(`💻️ Rename file "%s" to "%s"`+"\n", args.ExistedRelativeFilePath, args.NewRelativeFilePath)
-		w.rename(args.ExistedRelativeFilePath, args.NewRelativeFilePath)
-	case Override:
-		fmt.Printf(`💻️ Overwrite file "%s", replace %d bytes content from byte %d with:
-+++
-%s
-+++
-`,
-			args.ExistedRelativeFilePath, args.Size, args.Offset, args.Content)
-		w.overrideFile(args.ExistedRelativeFilePath, args.Content, args.Offset, args.Size)
-	default:
-		panic(op)
-	}
-}
-
-func (w realWorktree) applyDir(op WorktreeOP, args *WorktreeOPArgs) {
-	switch op {
-	case Create:
-		fmt.Printf(`💻 Mkdir "%s"`+"\n", args.NewRelativeDirPath)
-		w.makeDir(args.NewRelativeDirPath)
-	case Delete:
-		fmt.Printf(`💻 Unlink "%s"`+"\n", args.ExistedRelativeDirPath)
-		w.delete(args.ExistedRelativeDirPath)
-	case Rename:
-		fmt.Printf(`💻 Rename dir "%s" to "%s"`+"\n", args.ExistedRelativeDirPath, args.NewRelativeDirPath)
-		w.rename(args.ExistedRelativeDirPath, args.NewRelativeDirPath)
-	default:
-		panic(op)
-	}
-}
-
-func (w realWorktree) size(relativePath string) int64 {
+func (w real) size(relativePath string) int64 {
 	path := w.completePath(relativePath)
 	fi, err := os.Lstat(path)
 	if err != nil {
@@ -132,14 +64,14 @@ func (w realWorktree) size(relativePath string) int64 {
 	return fi.Size()
 }
 
-func (w realWorktree) createFile(name, text string) {
+func (w real) createFile(name, text string) {
 	path := w.completePath(name)
 	if err := ioutil.WriteFile(path, []byte(text), 0755); err != nil {
 		w.panic(path, err)
 	}
 }
 
-func (w realWorktree) overrideFile(name, text string, off, size int64) {
+func (w real) overrideFile(name, text string, off, size int64) {
 	path := w.completePath(name)
 	f, err := os.OpenFile(path, os.O_RDWR, 0666)
 	if err != nil {
@@ -207,21 +139,21 @@ func (w realWorktree) overrideFile(name, text string, off, size int64) {
 	}
 }
 
-func (w realWorktree) makeDir(name string) {
+func (w real) makeDir(name string) {
 	path := w.completePath(name)
 	if err := os.MkdirAll(path, 0755); err != nil {
 		w.panic(path, err)
 	}
 }
 
-func (w realWorktree) delete(name string) {
+func (w real) delete(name string) {
 	path := w.completePath(name)
 	if err := os.RemoveAll(path); err != nil {
 		w.panic(path, err)
 	}
 }
 
-func (w realWorktree) rename(origin, target string) {
+func (w real) rename(origin, target string) {
 	originPath := w.completePath(origin)
 	targetPath := w.completePath(target)
 	if err := os.Rename(originPath, targetPath); err != nil {
@@ -229,10 +161,10 @@ func (w realWorktree) rename(origin, target string) {
 	}
 }
 
-func (w realWorktree) completePath(name string) (path string) {
+func (w real) completePath(name string) (path string) {
 	return filepath.Join(w.baseDir, name)
 }
 
-func (w realWorktree) panic(path string, err error) {
+func (w real) panic(path string, err error) {
 	panic(fmt.Sprintf("%s:%s", path, err))
 }

@@ -46,3 +46,13 @@ type Worktree interface {
 	FileSize(relativePath string) int64
 	Apply(ob WorktreeObject, op WorktreeOP, args *WorktreeOPArgs)
 }
+
+type underneath interface {
+	readDir() (dirs, files []string)
+	size(relativePath string) int64
+	createFile(name, text string)
+	overrideFile(name, text string, off, size int64)
+	makeDir(name string)
+	delete(name string)
+	rename(origin, target string)
+}
