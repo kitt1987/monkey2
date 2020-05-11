@@ -23,14 +23,14 @@ func NewWorktree(workDir string) Worktree {
 		panic(fmt.Sprintf("%s:not a directory", workDir))
 	}
 
-	return &worktree{baseDir: workDir}
+	return &realWorktree{baseDir: workDir}
 }
 
-type worktree struct {
+type realWorktree struct {
 	baseDir string
 }
 
-func (w worktree) readDir() (dirs, files []string) {
+func (w realWorktree) readDir() (dirs, files []string) {
 	parents := []string{""}
 	for _, parent := range parents {
 		path := w.completePath(parent)
@@ -52,27 +52,21 @@ func (w worktree) readDir() (dirs, files []string) {
 	return
 }
 
-func (w worktree) AllDirs() []string {
+func (w realWorktree) AllDirs() []string {
 	dirs, _ := w.readDir()
 	return dirs
 }
 
-func (w worktree) AllFiles() []string {
+func (w realWorktree) AllFiles() []string {
 	_, files := w.readDir()
 	return files
 }
 
-func (w worktree) FileSize(relativePath string) int64 {
-	path := w.completePath(relativePath)
-	fi, err := os.Lstat(path)
-	if err != nil {
-		w.panic(path, err)
-	}
-
-	return fi.Size()
+func (w realWorktree) FileSize(relativePath string) int64 {
+	return w.size(relativePath)
 }
 
-func (w worktree) Apply(ob WorktreeObject, op WorktreeOP, args *WorktreeOPArgs) {
+func (w realWorktree) Apply(ob WorktreeObject, op WorktreeOP, args *WorktreeOPArgs) {
 	switch ob {
 	case File:
 		w.applyFile(op, args)
@@ -83,7 +77,7 @@ func (w worktree) Apply(ob WorktreeObject, op WorktreeOP, args *WorktreeOPArgs) 
 	}
 }
 
-func (w worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
+func (w realWorktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 	switch op {
 	case Create:
 		fmt.Printf(`💻 Create file "%s" with content:
@@ -112,7 +106,7 @@ func (w worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 	}
 }
 
-func (w worktree) applyDir(op WorktreeOP, args *WorktreeOPArgs) {
+func (w realWorktree) applyDir(op WorktreeOP, args *WorktreeOPArgs) {
 	switch op {
 	case Create:
 		fmt.Printf(`💻 Mkdir "%s"`+"\n", args.NewRelativeDirPath)
@@ -128,14 +122,24 @@ func (w worktree) applyDir(op WorktreeOP, args *WorktreeOPArgs) {
 	}
 }
 
-func (w worktree) createFile(name, text string) {
+func (w realWorktree) size(relativePath string) int64 {
+	path := w.completePath(relativePath)
+	fi, err := os.Lstat(path)
+	if err != nil {
+		w.panic(path, err)
+	}
+
+	return fi.Size()
+}
+
+func (w realWorktree) createFile(name, text string) {
 	path := w.completePath(name)
 	if err := ioutil.WriteFile(path, []byte(text), 0755); err != nil {
 		w.panic(path, err)
 	}
 }
 
-func (w worktree) overrideFile(name, text string, off, size int64) {
+func (w realWorktree) overrideFile(name, text string, off, size int64) {
 	path := w.completePath(name)
 	f, err := os.OpenFile(path, os.O_RDWR, 0666)
 	if err != nil {
@@ -203,21 +207,21 @@ func (w worktree) overrideFile(name, text string, off, size int64) {
 	}
 }
 
-func (w worktree) makeDir(name string) {
+func (w realWorktree) makeDir(name string) {
 	path := w.completePath(name)
 	if err := os.MkdirAll(path, 0755); err != nil {
 		w.panic(path, err)
 	}
 }
 
-func (w worktree) delete(name string) {
+func (w realWorktree) delete(name string) {
 	path := w.completePath(name)
 	if err := os.RemoveAll(path); err != nil {
 		w.panic(path, err)
 	}
 }
 
-func (w worktree) rename(origin, target string) {
+func (w realWorktree) rename(origin, target string) {
 	originPath := w.completePath(origin)
 	targetPath := w.completePath(target)
 	if err := os.Rename(originPath, targetPath); err != nil {
@@ -225,10 +229,10 @@ func (w worktree) rename(origin, target string) {
 	}
 }
 
-func (w worktree) completePath(name string) (path string) {
+func (w realWorktree) completePath(name string) (path string) {
 	return filepath.Join(w.baseDir, name)
 }
 
-func (w worktree) panic(path string, err error) {
+func (w realWorktree) panic(path string, err error) {
 	panic(fmt.Sprintf("%s:%s", path, err))
 }
