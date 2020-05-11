@@ -40,13 +40,12 @@ func NewCar() Car {
 	r := &Runner{
 		done: make(chan error, 1),
 	}
-	r.ctx, r.kill = context.WithCancel(context.Background())
 	var args []string
 	if len(os.Args) > 3 {
 		args = os.Args[3:]
 	}
 
-	r.proc = exec.CommandContext(r.ctx, os.Args[2], args...)
+	r.proc = exec.CommandContext(context.Background(), os.Args[2], args...)
 	r.proc.Env = os.Environ()
 	r.proc.Dir = conf.Worktree()
 	return r
@@ -55,10 +54,8 @@ func NewCar() Car {
 type Runner struct {
 	//stdout chanWriter
 	//stderr chanWriter
-	ctx    context.Context
-	kill   context.CancelFunc
-	proc   *exec.Cmd
-	std *os.File
+	proc *exec.Cmd
+	std  *os.File
 	done chan error
 }
 
@@ -76,7 +73,7 @@ func (r *Runner) Start() {
 
 	go func() {
 		fmt.Printf(`🚁 Start sidecar "%s"`+"\n", strings.Join(r.proc.Args, " "))
-		r.done<-r.proc.Run()
+		r.done <- r.proc.Run()
 		close(r.done)
 	}()
 }
@@ -86,7 +83,11 @@ func (r *Runner) Done() <-chan error {
 }
 
 func (r *Runner) Kill() {
-	r.kill()
+	if r.proc.Process == nil {
+		return
+	}
+
+	r.proc.Process.Kill()
 	defer func() {
 		if r.std != nil {
 			r.std.Close()

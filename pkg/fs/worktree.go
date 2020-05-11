@@ -43,12 +43,26 @@ func (w worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 +++
 `, args.NewRelativeFilePath, args.Content)
 
+		if w.mirror != nil {
+			w.mirror.createFile(args.NewRelativeFilePath, args.Content)
+		}
+
 		w.under.createFile(args.NewRelativeFilePath, args.Content)
 	case Delete:
 		fmt.Printf(`💻 Unlink "%s"`+"\n", args.ExistedRelativeFilePath)
+
+		if w.mirror != nil {
+			w.mirror.delete(args.ExistedRelativeFilePath)
+		}
+
 		w.under.delete(args.ExistedRelativeFilePath)
 	case Rename:
 		fmt.Printf(`💻️ Rename file "%s" to "%s"`+"\n", args.ExistedRelativeFilePath, args.NewRelativeFilePath)
+
+		if w.mirror != nil {
+			w.mirror.rename(args.ExistedRelativeFilePath, args.NewRelativeFilePath)
+		}
+
 		w.under.rename(args.ExistedRelativeFilePath, args.NewRelativeFilePath)
 	case Override:
 		fmt.Printf(`💻️ Overwrite file "%s", replace %d bytes content from byte %d with:
@@ -59,6 +73,11 @@ func (w worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 			args.ExistedRelativeFilePath, args.Size, args.Offset, args.Content)
 
 		w.validateFile(args.ExistedRelativeFilePath)
+
+		if w.mirror != nil {
+			w.mirror.overrideFile(args.ExistedRelativeFilePath, args.Content, args.Offset, args.Size)
+		}
+
 		w.under.overrideFile(args.ExistedRelativeFilePath, args.Content, args.Offset, args.Size)
 	default:
 		panic(op)
@@ -69,12 +88,27 @@ func (w worktree) applyDir(op WorktreeOP, args *WorktreeOPArgs) {
 	switch op {
 	case Create:
 		fmt.Printf(`💻 Mkdir "%s"`+"\n", args.NewRelativeDirPath)
+
+		if w.mirror != nil {
+			w.mirror.makeDir(args.NewRelativeDirPath)
+		}
+
 		w.under.makeDir(args.NewRelativeDirPath)
 	case Delete:
 		fmt.Printf(`💻 Unlink "%s"`+"\n", args.ExistedRelativeDirPath)
+
+		if w.mirror != nil {
+			w.mirror.delete(args.ExistedRelativeDirPath)
+		}
+
 		w.under.delete(args.ExistedRelativeDirPath)
 	case Rename:
 		fmt.Printf(`💻 Rename dir "%s" to "%s"`+"\n", args.ExistedRelativeDirPath, args.NewRelativeDirPath)
+
+		if w.mirror != nil {
+			w.mirror.rename(args.ExistedRelativeDirPath, args.NewRelativeDirPath)
+		}
+
 		w.under.rename(args.ExistedRelativeDirPath, args.NewRelativeDirPath)
 	default:
 		panic(op)
@@ -105,7 +139,7 @@ func (w worktree) validateFile(name string) {
 	mirrorContent := w.mirror.readFile(name)
 	content := w.under.readFile(name)
 	if content != mirrorContent {
-		panic(fmt.Sprintf("file: %s \n mirror:%s, \n real:%s", name, mirrorContent, content))
+		panic(fmt.Sprintf("file: %s\nmirror:%s\nreal:%s", name, mirrorContent, content))
 	}
 }
 
