@@ -1,12 +1,12 @@
-package op
+package fs
 
 type WorktreeOP int
 
 const (
-	FSCreate = WorktreeOP(iota)
-	FSDelete
-	FSRename
-	FSOverride
+	Create = WorktreeOP(iota)
+	Delete
+	Rename
+	Override
 	TotalFSOP
 )
 
@@ -19,8 +19,8 @@ func (op WorktreeOP) String() string {
 type WorktreeObject int
 
 const (
-	FSFile = WorktreeObject(iota)
-	FSDir
+	File = WorktreeObject(iota)
+	Dir
 	TotalFSObject
 )
 

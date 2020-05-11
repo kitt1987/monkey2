@@ -1,4 +1,4 @@
-package op
+package fs
 
 import (
 	"fmt"
@@ -74,9 +74,9 @@ func (w Worktree) FileSize(relativePath string) int64 {
 
 func (w Worktree) Apply(ob WorktreeObject, op WorktreeOP, args *WorktreeOPArgs) {
 	switch ob {
-	case FSFile:
+	case File:
 		w.applyFile(op, args)
-	case FSDir:
+	case Dir:
 		w.applyDir(op, args)
 	default:
 		panic(ob)
@@ -85,7 +85,7 @@ func (w Worktree) Apply(ob WorktreeObject, op WorktreeOP, args *WorktreeOPArgs) 
 
 func (w Worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 	switch op {
-	case FSCreate:
+	case Create:
 		fmt.Printf(`💻 Create file "%s" with content:
 +++
 %s
@@ -93,13 +93,13 @@ func (w Worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 `, args.NewRelativeFilePath, args.Content)
 
 		w.createFile(args.NewRelativeFilePath, args.Content)
-	case FSDelete:
+	case Delete:
 		fmt.Printf(`💻 Unlink "%s"`+"\n", args.ExistedRelativeFilePath)
 		w.delete(args.ExistedRelativeFilePath)
-	case FSRename:
+	case Rename:
 		fmt.Printf(`💻️ Rename file "%s" to "%s"`+"\n", args.ExistedRelativeFilePath, args.NewRelativeFilePath)
 		w.rename(args.ExistedRelativeFilePath, args.NewRelativeFilePath)
-	case FSOverride:
+	case Override:
 		fmt.Printf(`💻️ Overwrite file "%s", replace %d bytes content from byte %d with:
 +++
 %s
@@ -114,13 +114,13 @@ func (w Worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 
 func (w Worktree) applyDir(op WorktreeOP, args *WorktreeOPArgs) {
 	switch op {
-	case FSCreate:
+	case Create:
 		fmt.Printf(`💻 Mkdir "%s"`+"\n", args.NewRelativeDirPath)
 		w.makeDir(args.NewRelativeDirPath)
-	case FSDelete:
+	case Delete:
 		fmt.Printf(`💻 Unlink "%s"`+"\n", args.ExistedRelativeDirPath)
 		w.delete(args.ExistedRelativeDirPath)
-	case FSRename:
+	case Rename:
 		fmt.Printf(`💻 Rename dir "%s" to "%s"`+"\n", args.ExistedRelativeDirPath, args.NewRelativeDirPath)
 		w.rename(args.ExistedRelativeDirPath, args.NewRelativeDirPath)
 	default:

@@ -3,20 +3,20 @@ package char
 import (
 	"fmt"
 	"github.com/git-roll/monkey2/pkg/conf"
-	"github.com/git-roll/monkey2/pkg/op"
+	"github.com/git-roll/monkey2/pkg/fs"
 	"time"
 )
 
 func Insane(worktree string) Monkey {
 	m := &insaneMonkey{
-		worktree: op.NewWorktree(worktree),
+		worktree: fs.NewWorktree(worktree),
 	}
 	return m
 }
 
 type insaneMonkey struct {
 	idle     *time.Timer
-	worktree *op.Worktree
+	worktree fs.Worktree
 }
 
 func (m insaneMonkey) Halt() {
@@ -44,36 +44,36 @@ func (m *insaneMonkey) StartWork(stopC <-chan struct{}) {
 
 func (m *insaneMonkey) work() {
 	obBias := NewObjectBias()
-	obBias.Set(int(op.FSFile), conf.PercentageFileOP())
-	obBias.Set(int(op.FSDir), 100-conf.PercentageFileOP())
+	obBias.Set(int(fs.File), conf.PercentageFileOP())
+	obBias.Set(int(fs.Dir), 100-conf.PercentageFileOP())
 
 	allDirs := m.worktree.AllDirs()
 	dirOpBias := NewDirOPBias()
 	if len(allDirs) == 0 {
-		dirOpBias.Set(int(op.FSCreate), 100)
+		dirOpBias.Set(int(fs.Create), 100)
 	} else {
-		dirOpBias.Set(int(op.FSCreate), 34)
-		dirOpBias.Set(int(op.FSDelete), 33)
-		dirOpBias.Set(int(op.FSRename), 33)
+		dirOpBias.Set(int(fs.Create), 34)
+		dirOpBias.Set(int(fs.Delete), 33)
+		dirOpBias.Set(int(fs.Rename), 33)
 	}
 
 	allFiles := m.worktree.AllFiles()
 	fileOpBias := NewFileOPBias()
 	if len(allFiles) == 0 {
-		fileOpBias.Set(int(op.FSCreate), 100)
+		fileOpBias.Set(int(fs.Create), 100)
 	} else {
-		fileOpBias.Set(int(op.FSCreate), 25)
-		fileOpBias.Set(int(op.FSDelete), 25)
-		fileOpBias.Set(int(op.FSRename), 25)
-		fileOpBias.Set(int(op.FSOverride), 25)
+		fileOpBias.Set(int(fs.Create), 25)
+		fileOpBias.Set(int(fs.Delete), 25)
+		fileOpBias.Set(int(fs.Rename), 25)
+		fileOpBias.Set(int(fs.Override), 25)
 	}
 
 	ob, op := randomFSOp(obBias, fileOpBias, dirOpBias)
 	m.worktree.Apply(ob, op, m.prepareArgs(allFiles, allDirs))
 }
 
-func (m *insaneMonkey) prepareArgs(allFiles, allDirs []string) *op.WorktreeOPArgs {
-	args := &op.WorktreeOPArgs{
+func (m *insaneMonkey) prepareArgs(allFiles, allDirs []string) *fs.WorktreeOPArgs {
+	args := &fs.WorktreeOPArgs{
 		NewRelativeFilePath: "f-" + randomName(conf.NameLength()),
 		NewRelativeDirPath:  "d-" + randomName(conf.NameLength()),
 		Content:             randomText(randomN(conf.WriteOnceLengthUpperBound())),

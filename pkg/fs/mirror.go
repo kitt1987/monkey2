@@ -1,15 +1,15 @@
-package op
+package fs
 
 import "fmt"
 
-type fsElem struct {
+type mirrorElem struct {
 	dir     bool
 	content []byte
 }
 
-type fsMirror map[string]fsElem
+type wtMirror map[string]mirrorElem
 
-func (m fsMirror) AllDirs() (dirs []string) {
+func (m wtMirror) AllDirs() (dirs []string) {
 	dirs = make([]string, 0, len(m))
 	for p, e := range m {
 		if e.dir {
@@ -20,7 +20,7 @@ func (m fsMirror) AllDirs() (dirs []string) {
 	return
 }
 
-func (m fsMirror) AllFiles() (files []string) {
+func (m wtMirror) AllFiles() (files []string) {
 	files = make([]string, 0, len(m))
 	for p, e := range m {
 		if !e.dir {
@@ -31,7 +31,7 @@ func (m fsMirror) AllFiles() (files []string) {
 	return
 }
 
-func (m fsMirror) FileSize(relativePath string) int64 {
+func (m wtMirror) FileSize(relativePath string) int64 {
 	elem, found := m[relativePath]
 	if !found {
 		panic(fmt.Sprintf(`%s not found`, relativePath))
@@ -44,17 +44,17 @@ func (m fsMirror) FileSize(relativePath string) int64 {
 	return int64(len(elem.content))
 }
 
-func (m fsMirror) createFile(name, text string) {
+func (m wtMirror) createFile(name, text string) {
 	if _, found := m[name]; found {
 		panic(fmt.Sprintf(`%s already exists`, name))
 	}
 
-	m[name] = fsElem{
+	m[name] = mirrorElem{
 		content: []byte(text),
 	}
 }
 
-func (m fsMirror) overrideFile(name, text string, off, size int64) {
+func (m wtMirror) overrideFile(name, text string, off, size int64) {
 	elem, found := m[name]
 	if !found {
 		panic(fmt.Sprintf(`%s not found`, name))
@@ -69,17 +69,17 @@ func (m fsMirror) overrideFile(name, text string, off, size int64) {
 	elem.content = append(elem.content, tail...)
 }
 
-func (m fsMirror) makeDir(name string) {
+func (m wtMirror) makeDir(name string) {
 	if _, found := m[name]; found {
 		panic(fmt.Sprintf(`%s already exists`, name))
 	}
 
-	m[name] = fsElem{
+	m[name] = mirrorElem{
 		dir: true,
 	}
 }
 
-func (m fsMirror) delete(name string) {
+func (m wtMirror) delete(name string) {
 	if _, found := m[name]; !found {
 		panic(fmt.Sprintf(`%s not found`, name))
 	}
@@ -87,7 +87,7 @@ func (m fsMirror) delete(name string) {
 	delete(m, name)
 }
 
-func (m fsMirror) rename(origin, target string) {
+func (m wtMirror) rename(origin, target string) {
 	elem, found := m[origin]
 	if !found {
 		panic(fmt.Sprintf(`%s not found`, origin))
