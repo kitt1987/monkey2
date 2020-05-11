@@ -39,3 +39,10 @@ type WorktreeOPArgs struct {
 	Offset                  int64
 	Size                    int64
 }
+
+type Worktree interface {
+	AllDirs() []string
+	AllFiles() []string
+	FileSize(relativePath string) int64
+	Apply(ob WorktreeObject, op WorktreeOP, args *WorktreeOPArgs)
+}
