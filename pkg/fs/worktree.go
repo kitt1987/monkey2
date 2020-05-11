@@ -89,11 +89,11 @@ func (w worktree) validateFSStructure() {
 	mirrorDirs, mirrorFiles := w.mirror.readDir()
 	dirs, files := w.under.readDir()
 	if err := equalStringSlices(dirs, mirrorDirs); err != nil {
-		panic(fmt.Sprintf("err: %s\nmirror:%#v\nreal:%#v", err, mirrorDirs, dirs))
+		panic(fmt.Sprintf("err: %s\n(a)real:%#v\n(b)mirror:%#v", err, dirs, mirrorDirs))
 	}
 
 	if err := equalStringSlices(files, mirrorFiles); err != nil {
-		panic(fmt.Sprintf("err: %s\nmirror:%#v\nreal:%#v", err, mirrorFiles, files))
+		panic(fmt.Sprintf("err: %s\n(a)real:%#v\n(b)mirror:%#v", err, files, mirrorFiles))
 	}
 }
 

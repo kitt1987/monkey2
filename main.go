@@ -32,6 +32,7 @@ func main() {
 
 	switch os.Args[1] {
 	case "insane":
+		fmt.Printf("🐲 I'm a monkey. I'm INSANE!\n")
 		monkey = char.Insane(conf.Worktree())
 	default:
 		fmt.Println(Usage)
@@ -49,7 +50,7 @@ func main() {
 		select {
 		case err, _ := <-sidecar.Done():
 			if err != nil {
-				fmt.Printf("🩸 Sidecar broke!")
+				fmt.Printf("🩸 Sidecar broke!\n")
 			}
 
 			signal.Stop(signCh)

@@ -78,8 +78,16 @@ func NewWorktree(workDir string) Worktree {
 		panic(fmt.Sprintf("%s:not a directory", workDir))
 	}
 
+	r := &real{baseDir: workDir}
+
+	initDirs, initFiles := r.readDir()
+	fileContents := make(map[string]string)
+	for _, f := range initFiles {
+		fileContents[f] = r.readFile(f)
+	}
+
 	return &worktree{
-		under:  &real{baseDir: workDir},
-		mirror: make(memMirror),
+		under:  r,
+		mirror: newMirror(initDirs, initFiles, fileContents),
 	}
 }

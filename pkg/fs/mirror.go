@@ -7,8 +7,22 @@ type mirrorElem struct {
 	content []byte
 }
 
-func newMirror(initDirs, initFiles []string) memMirror {
+func newMirror(initDirs, initFiles []string, initFileContents map[string]string) (m memMirror) {
+	m = make(memMirror)
+	for _, dir := range initDirs {
+		m[dir] = mirrorElem{
+			dir: true,
+		}
+	}
 
+	for _, file := range initFiles {
+		m[file] = mirrorElem{
+			dir:     false,
+			content: []byte(initFileContents[file]),
+		}
+	}
+
+	return m
 }
 
 type memMirror map[string]mirrorElem
