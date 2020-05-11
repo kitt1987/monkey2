@@ -3,7 +3,8 @@ package fs
 import "fmt"
 
 type worktree struct {
-	under underneath
+	under  underneath
+	mirror underneath
 }
 
 func (w worktree) AllDirs() []string {
@@ -77,9 +78,33 @@ func (w worktree) applyDir(op WorktreeOP, args *WorktreeOPArgs) {
 }
 
 func (w worktree) validateFSStructure() {
+	if w.mirror == nil {
+		return
+	}
 
+	mirrorDirs, mirrorFiles := w.mirror.readDir()
+	dirs, files := w.under.readDir()
+	if !equalStringSlices(dirs, mirrorDirs) {
+		panic(fmt.Sprintf("mirror:%#v \n real:%#v", mirrorDirs, dirs))
+	}
+
+	if !equalStringSlices(files, mirrorFiles) {
+		panic(fmt.Sprintf("mirror:%#v \n real:%#v", mirrorFiles, files))
+	}
 }
 
 func (w worktree) validateFile(name string) {
+	if w.mirror == nil {
+		return
+	}
+
+	mirrorContent := w.mirror.readFile(name)
+	content := w.under.readFile(name)
+	if content != mirrorContent {
+		panic(fmt.Sprintf("file: %s \n mirror:%s, \n real:%s", name, mirrorContent, content))
+	}
+}
+
+func equalStringSlices(a, b []string) bool {
 
 }

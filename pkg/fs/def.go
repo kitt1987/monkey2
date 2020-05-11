@@ -60,6 +60,7 @@ type underneath interface {
 	makeDir(name string)
 	delete(name string)
 	rename(origin, target string)
+	readFile(name string) string
 }
 
 func NewWorktree(workDir string) Worktree {
