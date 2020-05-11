@@ -21,7 +21,7 @@ var noticeOnce = make(map[string]bool)
 
 func notice(key string, hint string, v interface{}) {
 	if !noticeOnce[key] {
-		fmt.Printf(hint + `. Set environment variable "%s" to change.` + "\n", v, key)
+		fmt.Printf(hint+`. Set environment variable "%s" to change.`+"\n", v, key)
 		noticeOnce[key] = true
 	}
 }
@@ -29,7 +29,7 @@ func notice(key string, hint string, v interface{}) {
 func CoffeeTimeUpperBound() string {
 	v := os.Getenv(EnvCoffeeTimeUpperBound)
 	if len(v) == 0 {
-		v = time.Minute.String()
+		v = (30 * time.Second).String()
 	}
 
 	notice(EnvCoffeeTimeUpperBound, `🚁 Coffee time would be up to %s`, v)
@@ -70,7 +70,7 @@ func WriteOnceLengthUpperBound() int {
 func PercentageFileOP() int {
 	return envInt(EnvPercentageFileOP, 70,
 		`🚁 %d%% filesystem operations would be on files`,
-		)
+	)
 }
 
 func envInt(key string, def int, hint string) (i int) {

@@ -26,12 +26,13 @@ func main() {
 
 	signCh := make(chan os.Signal, 3)
 	signal.Ignore(syscall.SIGPIPE)
-	signal.Notify(signCh, os.Interrupt, syscall.SIGHUP, syscall.SIGTERM)
+	signal.Notify(signCh, syscall.SIGSEGV, syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM)
 
 	var monkey char.Monkey
 
 	switch os.Args[1] {
 	case "insane":
+		fmt.Printf("🐲 I'm a monkey. I'm INSANE!\n")
 		monkey = char.Insane(conf.Worktree())
 	default:
 		fmt.Println(Usage)
@@ -49,10 +50,11 @@ func main() {
 		select {
 		case err, _ := <-sidecar.Done():
 			if err != nil {
-				fmt.Printf("🩸 Sidecar broke!")
+				fmt.Printf("🩸 Sidecar broke!\n")
 			}
 
 			signal.Stop(signCh)
+			fmt.Printf("🛎 Monkey exit!\n")
 			close(stopC)
 			wg.Wait()
 			return
@@ -63,8 +65,10 @@ func main() {
 			}
 
 			signal.Stop(signCh)
+			fmt.Printf("🛎 Monkey exit!\n")
 			close(stopC)
 			wg.Wait()
+			fmt.Printf("🛎 Stop sidecar!\n")
 			sidecar.Kill()
 			return
 		}

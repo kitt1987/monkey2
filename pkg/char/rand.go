@@ -3,13 +3,14 @@ package char
 import (
 	"fmt"
 	"github.com/git-roll/monkey2/pkg/conf"
-	"github.com/git-roll/monkey2/pkg/op"
+	"github.com/git-roll/monkey2/pkg/fs"
 	"math/rand"
 	"sort"
 	"time"
 )
 
 const FullPercent = PercentageWithoutSign(100)
+
 type PercentageWithoutSign uint
 
 func (p PercentageWithoutSign) Validate() {
@@ -61,27 +62,27 @@ func (b PercentageDistribution) RandomObject() (i int) {
 }
 
 func NewObjectBias() PercentageDistribution {
-	return make([]PercentageWithoutSign, op.TotalFSObject)
+	return make([]PercentageWithoutSign, fs.TotalFSObject)
 }
 
 func NewFileOPBias() PercentageDistribution {
-	return make([]PercentageWithoutSign, op.TotalFSOP)
+	return make([]PercentageWithoutSign, fs.TotalFSOP)
 }
 
 func NewDirOPBias() PercentageDistribution {
-	return make([]PercentageWithoutSign, op.TotalFSOP-1)
+	return make([]PercentageWithoutSign, fs.TotalFSOP-1)
 }
 
-func randomFSOp(obBias, fileBias, dirBias PercentageDistribution) (fsObj op.WorktreeObject, fsOP op.WorktreeOP) {
+func randomFSOp(obBias, fileBias, dirBias PercentageDistribution) (fsObj fs.WorktreeObject, fsOP fs.WorktreeOP) {
 	obBias.Complete()
 	fileBias.Complete()
 	dirBias.Complete()
 
-	fsObj = op.WorktreeObject(obBias.RandomObject())
-	if fsObj == op.FSFile {
-		fsOP = op.WorktreeOP(fileBias.RandomObject())
+	fsObj = fs.WorktreeObject(obBias.RandomObject())
+	if fsObj == fs.File {
+		fsOP = fs.WorktreeOP(fileBias.RandomObject())
 	} else {
-		fsOP = op.WorktreeOP(dirBias.RandomObject())
+		fsOP = fs.WorktreeOP(dirBias.RandomObject())
 	}
 
 	return
@@ -101,7 +102,7 @@ func randomItem(c []string) string {
 	return c[randomN(len(c))]
 }
 
-const contentBytes = `"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@#$%^&*()-=_+\][{}|;'":/.,<>?`+"\n"
+const contentBytes = `"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@#$%^&*()-=_+\][{}|;'":/.,<>?` + "\n"
 const nameBytes = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.`
 
 func randomName(size int) string {
