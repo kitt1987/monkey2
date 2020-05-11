@@ -109,16 +109,18 @@ func (w real) overrideFile(name, text string, off, size int64) {
 
 	if int64(len(overriddenBuf)) > size {
 		buf := overriddenBuf[size:]
+		offset := off + int64(len(text))
 		var n int64
 		var err error
 		for n < int64(len(buf)) {
 			var m int
-			m, err = f.Write(buf[n:])
+			m, err = f.WriteAt(buf[n:], offset)
 			if m == 0 {
 				w.panic(path, err)
 			}
 
 			n += int64(m)
+			offset += int64(m)
 		}
 	}
 }

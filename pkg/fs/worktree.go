@@ -123,11 +123,11 @@ func (w worktree) validateFSStructure() {
 	mirrorDirs, mirrorFiles := w.mirror.readDir()
 	dirs, files := w.under.readDir()
 	if err := equalStringSlices(dirs, mirrorDirs); err != nil {
-		panic(fmt.Sprintf("err: %s\n(a)real:%#v\n(b)mirror:%#v", err, dirs, mirrorDirs))
+		panic(fmt.Sprintf("err: %s\n(a)real:%#v\n(b)mirror:%#v\n", err, dirs, mirrorDirs))
 	}
 
 	if err := equalStringSlices(files, mirrorFiles); err != nil {
-		panic(fmt.Sprintf("err: %s\n(a)real:%#v\n(b)mirror:%#v", err, files, mirrorFiles))
+		panic(fmt.Sprintf("err: %s\n(a)real:%#v\n(b)mirror:%#v\n", err, files, mirrorFiles))
 	}
 }
 
@@ -139,7 +139,7 @@ func (w worktree) validateFile(name string) {
 	mirrorContent := w.mirror.readFile(name)
 	content := w.under.readFile(name)
 	if content != mirrorContent {
-		panic(fmt.Sprintf("file: %s\nmirror:%s\nreal:%s", name, mirrorContent, content))
+		panic(fmt.Sprintf("file: %s\nmirror:%s\nreal:%s\n", name, mirrorContent, content))
 	}
 }
 

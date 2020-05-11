@@ -73,6 +73,10 @@ func (m memMirror) overrideFile(name, text string, off, size int64) {
 		panic(fmt.Sprintf(`%s is a directory`, name))
 	}
 
+	if (off + size) > int64(len(text)) {
+		size = int64(len(text)) - off
+	}
+
 	tail := elem.content[:off+size]
 	elem.content = append(elem.content[:off], []byte(text)...)
 	elem.content = append(elem.content, tail...)
