@@ -48,6 +48,7 @@ func NewCar() Car {
 	r.proc = exec.CommandContext(context.Background(), os.Args[2], args...)
 	r.proc.Env = os.Environ()
 	r.proc.Dir = conf.Worktree()
+	setTermSig(r.proc)
 	return r
 }
 
@@ -61,7 +62,7 @@ type Runner struct {
 
 func (r *Runner) Start() {
 	stdfile := conf.SidecarStdFile()
-	f, err := os.OpenFile(stdfile, os.O_RDWR|os.O_CREATE, 0666)
+	f, err := os.OpenFile(stdfile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		panic(fmt.Sprintf("%s:%s", stdfile, err))
 	}

@@ -72,13 +72,12 @@ func (m memMirror) overrideFile(name, text string, off, size int64) {
 		panic(fmt.Sprintf(`%s is a directory`, name))
 	}
 
-	if (off + size) > int64(len(elem.content)) {
-		size = int64(len(elem.content)) - off
+	var tail []byte
+	if (off + size) < int64(len(elem.content)) {
+		tail = elem.content[off+size:]
 	}
 
-	tail := elem.content[off+size:]
-	elem.content = append(elem.content[:off], []byte(text)...)
-	elem.content = append(elem.content, tail...)
+	elem.content = append(elem.content[:off], append([]byte(text), tail...)...)
 }
 
 func (m memMirror) makeDir(name string) {
