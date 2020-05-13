@@ -70,20 +70,20 @@ func (w real) overrideFile(name, text string, off, size int64) {
 		w.panic(path, err)
 	}
 
-	overriddenLen := fi.Size() - off
-	if overriddenLen < 0 {
-		w.panic(path, fmt.Errorf("size: %d, offset: %d", fi.Size(), off))
+	tailLen := fi.Size() - off - size
+	if tailLen < 0 {
+		tailLen = 0
 	}
 
-	var overriddenBuf []byte
-	if overriddenLen > 0 {
-		overriddenBuf = make([]byte, overriddenLen)
-		offset := off
+	var tail []byte
+	if tailLen > 0 {
+		tail = make([]byte, tailLen)
+		offset := off + size
 		var n int64
 		var err error
-		for n < overriddenLen && err != io.EOF {
+		for n < tailLen && err != io.EOF {
 			var m int
-			m, err = f.ReadAt(overriddenBuf[n:], offset)
+			m, err = f.ReadAt(tail[n:], offset)
 			if m == 0 {
 				w.panic(path, err)
 			}
@@ -109,20 +109,25 @@ func (w real) overrideFile(name, text string, off, size int64) {
 		}
 	}
 
-	if int64(len(overriddenBuf)) > size {
-		buf := overriddenBuf[size:]
+	if tailLen > 0 {
 		offset := off + int64(len(text))
 		var n int64
 		var err error
-		for n < int64(len(buf)) {
+
+		for n < int64(len(tail)) {
 			var m int
-			m, err = f.WriteAt(buf[n:], offset)
+			m, err = f.WriteAt(tail[n:], offset)
 			if m == 0 {
 				w.panic(path, err)
 			}
 
 			n += int64(m)
 			offset += int64(m)
+		}
+
+		err = f.Truncate(offset)
+		if err != nil {
+			w.panic(path, err)
 		}
 	}
 }
