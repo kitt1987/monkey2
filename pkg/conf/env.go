@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -15,6 +16,7 @@ const (
 	EnvPercentageFileOP     = "PERCENTAGE_FILE_OPERATION"
 	EnvWorktree             = "WORKTREE"
 	EnvSidecarStdFile       = "SIDECAR_STD_FILE"
+	EnvExcludedFiles        = "EXCLUDED_FILES"
 )
 
 var noticeOnce = make(map[string]bool)
@@ -71,6 +73,20 @@ func PercentageFileOP() int {
 	return envInt(EnvPercentageFileOP, 70,
 		`🚁 %d%% filesystem operations would be on files`,
 	)
+}
+
+func ExcludedFiles() map[string]bool {
+	v := os.Getenv(EnvExcludedFiles)
+	if len(v) == 0 {
+		return nil
+	}
+
+	ex := make(map[string]bool)
+	for _, f := range strings.Split(v, ",") {
+		ex[f] = true
+	}
+
+	return ex
 }
 
 func envInt(key string, def int, hint string) (i int) {

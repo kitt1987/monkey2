@@ -62,10 +62,10 @@ func (m *insaneMonkey) work() {
 	if len(allFiles) == 0 {
 		fileOpBias.Set(int(fs.Create), 100)
 	} else {
-		fileOpBias.Set(int(fs.Create), 25)
-		fileOpBias.Set(int(fs.Delete), 25)
-		fileOpBias.Set(int(fs.Rename), 25)
-		fileOpBias.Set(int(fs.Override), 25)
+		fileOpBias.Set(int(fs.Create), 20)
+		fileOpBias.Set(int(fs.Delete), 20)
+		fileOpBias.Set(int(fs.Rename), 20)
+		fileOpBias.Set(int(fs.Override), 40)
 	}
 
 	ob, op := randomFSOp(obBias, fileOpBias, dirOpBias)

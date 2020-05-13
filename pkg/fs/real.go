@@ -2,6 +2,7 @@ package fs
 
 import (
 	"fmt"
+	"github.com/git-roll/monkey2/pkg/conf"
 	"io"
 	"io/ioutil"
 	"os"
@@ -13,6 +14,7 @@ type real struct {
 }
 
 func (w real) readDir() (dirs, files []string) {
+	ex := conf.ExcludedFiles()
 	parents := []string{""}
 	for _, parent := range parents {
 		path := w.completePath(parent)
@@ -22,7 +24,7 @@ func (w real) readDir() (dirs, files []string) {
 		}
 
 		for _, fi := range fis {
-			if fi.Name()[0] == '.' {
+			if fi.Name()[0] == '.' || ex[fi.Name()] {
 				continue
 			}
 
