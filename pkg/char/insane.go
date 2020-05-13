@@ -82,8 +82,13 @@ func (m *insaneMonkey) prepareArgs(allFiles, allDirs []string) *fs.WorktreeOPArg
 	if len(allFiles) > 0 {
 		args.ExistedRelativeFilePath = randomItem(allFiles)
 		size := m.worktree.FileSize(args.ExistedRelativeFilePath)
-		args.Offset = randomN64(size)
-		args.Size = randomN64(size - args.Offset)
+		if size == 0 {
+			args.Offset = 0
+			args.Size = 0
+		} else {
+			args.Offset = randomN64(size)
+			args.Size = randomN64(size - args.Offset)
+		}
 	}
 
 	if len(allDirs) > 0 {
