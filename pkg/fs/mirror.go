@@ -10,14 +10,13 @@ type mirrorElem struct {
 func newMirror(initDirs, initFiles []string, initFileContents map[string]string) (m memMirror) {
 	m = make(memMirror)
 	for _, dir := range initDirs {
-		m[dir] = mirrorElem{
+		m[dir] = &mirrorElem{
 			dir: true,
 		}
 	}
 
 	for _, file := range initFiles {
-		m[file] = mirrorElem{
-			dir:     false,
+		m[file] = &mirrorElem{
 			content: []byte(initFileContents[file]),
 		}
 	}
@@ -25,7 +24,7 @@ func newMirror(initDirs, initFiles []string, initFileContents map[string]string)
 	return m
 }
 
-type memMirror map[string]mirrorElem
+type memMirror map[string]*mirrorElem
 
 func (m memMirror) readDir() (dirs, files []string) {
 	dirs = make([]string, 0, len(m))
@@ -58,7 +57,7 @@ func (m memMirror) createFile(name, text string) {
 		panic(fmt.Sprintf(`%s already exists`, name))
 	}
 
-	m[name] = mirrorElem{
+	m[name] = &mirrorElem{
 		content: []byte(text),
 	}
 }
@@ -73,11 +72,11 @@ func (m memMirror) overrideFile(name, text string, off, size int64) {
 		panic(fmt.Sprintf(`%s is a directory`, name))
 	}
 
-	if (off + size) > int64(len(text)) {
-		size = int64(len(text)) - off
+	if (off + size) > int64(len(elem.content)) {
+		size = int64(len(elem.content)) - off
 	}
 
-	tail := elem.content[:off+size]
+	tail := elem.content[off+size:]
 	elem.content = append(elem.content[:off], []byte(text)...)
 	elem.content = append(elem.content, tail...)
 }
@@ -87,7 +86,7 @@ func (m memMirror) makeDir(name string) {
 		panic(fmt.Sprintf(`%s already exists`, name))
 	}
 
-	m[name] = mirrorElem{
+	m[name] = &mirrorElem{
 		dir: true,
 	}
 }

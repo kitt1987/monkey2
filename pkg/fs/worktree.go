@@ -139,7 +139,7 @@ func (w worktree) validateFile(name string) {
 	mirrorContent := w.mirror.readFile(name)
 	content := w.under.readFile(name)
 	if content != mirrorContent {
-		panic(fmt.Sprintf("file: %s\nmirror:%s\nreal:%s\n", name, mirrorContent, content))
+		panic(fmt.Sprintf("file: %s\n---\nmirror:%s\n---\nreal:%s\n", name, mirrorContent, content))
 	}
 }
 

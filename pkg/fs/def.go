@@ -81,7 +81,7 @@ func NewWorktree(workDir string) Worktree {
 	r := &real{baseDir: workDir}
 
 	initDirs, initFiles := r.readDir()
-	fileContents := make(map[string]string)
+	fileContents := make(map[string]string, len(initFiles))
 	for _, f := range initFiles {
 		fileContents[f] = r.readFile(f)
 	}
