@@ -2,15 +2,16 @@ package side
 
 import (
 	"context"
-	"fmt"
 	"github.com/git-roll/monkey2/pkg/conf"
+	"github.com/git-roll/monkey2/pkg/notify"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
 )
 
 type Car interface {
-	Start()
+	Start(io.Writer)
 	Kill()
 	Done() <-chan error
 }
@@ -56,24 +57,15 @@ type Runner struct {
 	//stdout chanWriter
 	//stderr chanWriter
 	proc *exec.Cmd
-	std  *os.File
 	done chan error
 }
 
-func (r *Runner) Start() {
-	stdfile := conf.SidecarStdFile()
-	f, err := os.OpenFile(stdfile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
-	if err != nil {
-		panic(fmt.Sprintf("%s:%s", stdfile, err))
-	}
-
-	r.std = f
-
-	r.proc.Stdout = f
-	r.proc.Stderr = f
+func (r *Runner) Start(console io.Writer) {
+	r.proc.Stdout = console
+	r.proc.Stderr = console
 
 	go func() {
-		fmt.Printf(`🚁 Start sidecar "%s"`+"\n", strings.Join(r.proc.Args, " "))
+		notify.Printf(`🚁 Start sidecar "%s"`+"\n", strings.Join(r.proc.Args, " "))
 		r.done <- r.proc.Run()
 		close(r.done)
 	}()
@@ -89,12 +81,6 @@ func (r *Runner) Kill() {
 	}
 
 	r.proc.Process.Kill()
-	defer func() {
-		if r.std != nil {
-			r.std.Close()
-		}
-	}()
-
 	if err := r.proc.Wait(); err != nil {
 		return
 	}

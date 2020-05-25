@@ -1,9 +1,9 @@
 package char
 
 import (
-	"fmt"
 	"github.com/git-roll/monkey2/pkg/conf"
 	"github.com/git-roll/monkey2/pkg/fs"
+	"github.com/git-roll/monkey2/pkg/notify"
 	"time"
 )
 
@@ -33,7 +33,7 @@ func (m *insaneMonkey) StartWork(stopC <-chan struct{}) {
 			m.work()
 
 			idle := randomCoffeeTime()
-			fmt.Printf("☕️ coffee time: %s\n", idle)
+			notify.Printf("☕️ coffee time: %s\n", idle)
 			m.idle.Reset(idle)
 		case <-stopC:
 			m.Halt()
