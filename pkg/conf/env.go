@@ -2,6 +2,7 @@ package conf
 
 import (
 	"fmt"
+	"github.com/git-roll/monkey2/pkg/notify"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -16,6 +17,7 @@ const (
 	EnvPercentageFileOP     = "PERCENTAGE_FILE_OPERATION"
 	EnvWorktree             = "WORKTREE"
 	EnvSidecarStdFile       = "SIDECAR_STD_FILE"
+	EnvWebSocketPort        = "WEBSOCKET_PORT"
 	EnvExcludedFiles        = "EXCLUDED_FILES"
 )
 
@@ -23,6 +25,7 @@ var noticeOnce = make(map[string]bool)
 
 func notice(key string, hint string, v interface{}) {
 	if !noticeOnce[key] {
+		notify.Printf(hint+`. Set environment variable "%s" to change.`+"\n", v, key)
 		fmt.Printf(hint+`. Set environment variable "%s" to change.`+"\n", v, key)
 		noticeOnce[key] = true
 	}
@@ -56,6 +59,12 @@ func SidecarStdFile() string {
 
 	notice(EnvSidecarStdFile, `🚁 Stdout of the sidecar will be written to "%s"`, std)
 	return std
+}
+
+func WebSocketPort() int {
+	return envInt(EnvWebSocketPort, 80,
+		`🚁 Logs are exposed on port %d`,
+	)
 }
 
 func NameLength() int {

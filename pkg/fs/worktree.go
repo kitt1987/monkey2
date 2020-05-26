@@ -1,6 +1,9 @@
 package fs
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/git-roll/monkey2/pkg/notify"
+)
 
 type worktree struct {
 	under  underneath
@@ -37,7 +40,7 @@ func (w worktree) Apply(ob WorktreeObject, op WorktreeOP, args *WorktreeOPArgs) 
 func (w worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 	switch op {
 	case Create:
-		fmt.Printf(`💻 Create file "%s" with content:
+		notify.Printf(`💻 Create file "%s" with content:
 +++
 %s
 +++
@@ -49,7 +52,7 @@ func (w worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 
 		w.under.createFile(args.NewRelativeFilePath, args.Content)
 	case Delete:
-		fmt.Printf(`💻 Unlink "%s"`+"\n", args.ExistedRelativeFilePath)
+		notify.Printf(`💻 Unlink "%s"`+"\n", args.ExistedRelativeFilePath)
 
 		if w.mirror != nil {
 			w.mirror.delete(args.ExistedRelativeFilePath)
@@ -57,7 +60,7 @@ func (w worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 
 		w.under.delete(args.ExistedRelativeFilePath)
 	case Rename:
-		fmt.Printf(`💻️ Rename file "%s" to "%s"`+"\n", args.ExistedRelativeFilePath, args.NewRelativeFilePath)
+		notify.Printf(`💻️ Rename file "%s" to "%s"`+"\n", args.ExistedRelativeFilePath, args.NewRelativeFilePath)
 
 		if w.mirror != nil {
 			w.mirror.rename(args.ExistedRelativeFilePath, args.NewRelativeFilePath)
@@ -65,7 +68,7 @@ func (w worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 
 		w.under.rename(args.ExistedRelativeFilePath, args.NewRelativeFilePath)
 	case Override:
-		fmt.Printf(`💻️ Overwrite file "%s", replace %d bytes content from byte %d with:
+		notify.Printf(`💻️ Overwrite file "%s", replace %d bytes content from byte %d with:
 +++
 %s
 +++
@@ -87,7 +90,7 @@ func (w worktree) applyFile(op WorktreeOP, args *WorktreeOPArgs) {
 func (w worktree) applyDir(op WorktreeOP, args *WorktreeOPArgs) {
 	switch op {
 	case Create:
-		fmt.Printf(`💻 Mkdir "%s"`+"\n", args.NewRelativeDirPath)
+		notify.Printf(`💻 Mkdir "%s"`+"\n", args.NewRelativeDirPath)
 
 		if w.mirror != nil {
 			w.mirror.makeDir(args.NewRelativeDirPath)
@@ -95,7 +98,7 @@ func (w worktree) applyDir(op WorktreeOP, args *WorktreeOPArgs) {
 
 		w.under.makeDir(args.NewRelativeDirPath)
 	case Delete:
-		fmt.Printf(`💻 Unlink "%s"`+"\n", args.ExistedRelativeDirPath)
+		notify.Printf(`💻 Unlink "%s"`+"\n", args.ExistedRelativeDirPath)
 
 		if w.mirror != nil {
 			w.mirror.delete(args.ExistedRelativeDirPath)
@@ -103,7 +106,7 @@ func (w worktree) applyDir(op WorktreeOP, args *WorktreeOPArgs) {
 
 		w.under.delete(args.ExistedRelativeDirPath)
 	case Rename:
-		fmt.Printf(`💻 Rename dir "%s" to "%s"`+"\n", args.ExistedRelativeDirPath, args.NewRelativeDirPath)
+		notify.Printf(`💻 Rename dir "%s" to "%s"`+"\n", args.ExistedRelativeDirPath, args.NewRelativeDirPath)
 
 		if w.mirror != nil {
 			w.mirror.rename(args.ExistedRelativeDirPath, args.NewRelativeDirPath)
