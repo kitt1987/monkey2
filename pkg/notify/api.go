@@ -14,4 +14,5 @@ func Set(notifier io.Writer) {
 
 func Printf(text string, a ...interface{}) {
 	fmt.Fprintf(no, text, a...)
+	fmt.Printf(text, a...)
 }

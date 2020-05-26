@@ -70,22 +70,20 @@ func main() {
 
 	for {
 		select {
-		case err, _ := <-sidecar.Done():
-			if err != nil {
-				notify.Printf("🩸 Sidecar broke!\n")
-			}
-
+		case <-sidecar.Done():
+			notify.Printf("🩸 Sidecar broke!\n")
 			signal.Stop(signCh)
 			notify.Printf("🛎 Monkey exit!\n")
 			close(stopC)
 			wg.Wait()
 			return
 
-		case _, ok := <-signCh:
+		case sig, ok := <-signCh:
 			if !ok {
 				return
 			}
 
+			notify.Printf("🛎 Got signal %s", sig)
 			signal.Stop(signCh)
 			notify.Printf("🛎 Monkey exit!\n")
 			close(stopC)
