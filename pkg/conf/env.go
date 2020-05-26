@@ -34,7 +34,7 @@ func notice(key string, hint string, v interface{}) {
 func CoffeeTimeUpperBound() string {
 	v := os.Getenv(EnvCoffeeTimeUpperBound)
 	if len(v) == 0 {
-		v = (30 * time.Second).String()
+		v = (15 * time.Second).String()
 	}
 
 	notice(EnvCoffeeTimeUpperBound, `🚁 Coffee time would be up to %s`, v)
@@ -73,7 +73,7 @@ func NameLength() int {
 
 func WriteOnceLengthUpperBound() int {
 	return envInt(
-		EnvWriteOnceLength, 2048,
+		EnvWriteOnceLength, 512,
 		`🚁 Length of each file write would be %d`,
 	)
 }
