@@ -1,13 +1,15 @@
 package cmd
 
 import (
-	"bufio"
-	"io"
-	"os"
-	"strings"
+    "bufio"
+    "github.com/git-roll/monkey2/pkg/notify"
+    "io"
+    "os"
+    "os/exec"
+    "strings"
 )
 
-func NewSeq(seqFile string) *Seq {
+func NewSeq(seqFile, worktree string) *Seq {
 	f, err := os.Open(seqFile)
 	if err != nil {
 		panic(err)
@@ -45,7 +47,7 @@ func NewSeq(seqFile string) *Seq {
 		}
 	}
 
-	return &Seq{cmds: cmds}
+	return &Seq{CMD: cmds, dir: worktree }
 }
 
 func parseCommand(line string) *Command {
@@ -66,10 +68,21 @@ type Command struct {
 }
 
 type Seq struct {
-	cmds []*Command
+	CMD []*Command
+	dir string
 }
 
-func (s *Seq) Apply() {
-    panic("implement me")
-}
+func (s *Seq) Apply(id int) {
+    if id >= len(s.CMD) {
+        panic(id)
+    }
 
+    c := exec.Command(s.CMD[id].Name, s.CMD[id].Args...)
+    c.Env = os.Environ()
+    c.Dir = s.dir
+    c.Stdout = os.Stdout
+    c.Stderr = os.Stderr
+
+    notify.Printf(`💻 Exec command :"%s %s"`, c.String())
+    c.Run()
+}

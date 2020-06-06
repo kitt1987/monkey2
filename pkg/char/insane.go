@@ -15,7 +15,7 @@ func Insane(worktree string) Monkey {
 
 	seq := conf.CmdSeqFile()
 	if len(seq) > 0 {
-		m.commands = cmd.NewSeq(seq)
+		m.commands = cmd.NewSeq(seq, worktree)
 	}
 
 	return m
@@ -71,33 +71,7 @@ func (m *insaneMonkey) work() {
 }
 
 func (m *insaneMonkey) cmdWork() {
-	obBias := NewObjectBias()
-	obBias.Set(int(fs.File), conf.PercentageFileOP())
-	obBias.Set(int(fs.Dir), 100-conf.PercentageFileOP())
-
-	allDirs := m.worktree.AllDirs()
-	dirOpBias := NewDirOPBias()
-	if len(allDirs) == 0 {
-		dirOpBias.Set(int(fs.Create), 100)
-	} else {
-		dirOpBias.Set(int(fs.Create), 34)
-		dirOpBias.Set(int(fs.Delete), 33)
-		dirOpBias.Set(int(fs.Rename), 33)
-	}
-
-	allFiles := m.worktree.AllFiles()
-	fileOpBias := NewFileOPBias()
-	if len(allFiles) == 0 {
-		fileOpBias.Set(int(fs.Create), 100)
-	} else {
-		fileOpBias.Set(int(fs.Create), 20)
-		fileOpBias.Set(int(fs.Delete), 20)
-		fileOpBias.Set(int(fs.Rename), 20)
-		fileOpBias.Set(int(fs.Override), 40)
-	}
-
-	ob, op := randomFSOp(obBias, fileOpBias, dirOpBias)
-	m.worktree.Apply(ob, op, m.prepareArgs(allFiles, allDirs))
+	m.commands.Apply(randomN(len(m.commands.CMD)))
 }
 
 func (m *insaneMonkey) fsWork() {
