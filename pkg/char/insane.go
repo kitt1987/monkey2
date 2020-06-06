@@ -1,6 +1,7 @@
 package char
 
 import (
+	"github.com/git-roll/monkey2/pkg/cmd"
 	"github.com/git-roll/monkey2/pkg/conf"
 	"github.com/git-roll/monkey2/pkg/fs"
 	"github.com/git-roll/monkey2/pkg/notify"
@@ -11,12 +12,19 @@ func Insane(worktree string) Monkey {
 	m := &insaneMonkey{
 		worktree: fs.NewWorktree(worktree),
 	}
+
+	seq := conf.CmdSeqFile()
+	if len(seq) > 0 {
+		m.commands = cmd.NewSeq(seq)
+	}
+
 	return m
 }
 
 type insaneMonkey struct {
 	idle     *time.Timer
 	worktree fs.Worktree
+	commands *cmd.Seq
 }
 
 func (m insaneMonkey) Halt() {
