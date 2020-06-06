@@ -2,3 +2,6 @@
 /.idea
 /_output
 /key
+/hack/insane-gr/hub
+/.gitignore~
+/hack
