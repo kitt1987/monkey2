@@ -1,6 +1,7 @@
 package char
 
 import (
+	"github.com/git-roll/monkey2/pkg/cmd"
 	"github.com/git-roll/monkey2/pkg/conf"
 	"github.com/git-roll/monkey2/pkg/fs"
 	"github.com/git-roll/monkey2/pkg/notify"
@@ -11,12 +12,19 @@ func Insane(worktree string) Monkey {
 	m := &insaneMonkey{
 		worktree: fs.NewWorktree(worktree),
 	}
+
+	seq := conf.CmdSeqFile()
+	if len(seq) > 0 {
+		m.commands = cmd.NewSeq(seq, worktree)
+	}
+
 	return m
 }
 
 type insaneMonkey struct {
 	idle     *time.Timer
 	worktree fs.Worktree
+	commands *cmd.Seq
 }
 
 func (m insaneMonkey) Halt() {
@@ -43,6 +51,30 @@ func (m *insaneMonkey) StartWork(stopC <-chan struct{}) {
 }
 
 func (m *insaneMonkey) work() {
+	if m.commands == nil {
+		m.fsWork()
+		return
+	}
+
+	bias := NewActivityBias()
+	bias.Set(int(CMDActivity), conf.PercentageCmd())
+	bias.Set(int(FSActivity), 100-conf.PercentageCmd())
+	activity := MonkeyActivity(bias.RandomObject())
+	switch activity {
+	case CMDActivity:
+		m.cmdWork()
+	case FSActivity:
+		m.fsWork()
+	default:
+		panic(activity)
+	}
+}
+
+func (m *insaneMonkey) cmdWork() {
+	m.commands.Apply(randomN(len(m.commands.CMD)))
+}
+
+func (m *insaneMonkey) fsWork() {
 	obBias := NewObjectBias()
 	obBias.Set(int(fs.File), conf.PercentageFileOP())
 	obBias.Set(int(fs.Dir), 100-conf.PercentageFileOP())
