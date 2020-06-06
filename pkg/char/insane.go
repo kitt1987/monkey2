@@ -51,6 +51,56 @@ func (m *insaneMonkey) StartWork(stopC <-chan struct{}) {
 }
 
 func (m *insaneMonkey) work() {
+	if m.commands == nil {
+		m.fsWork()
+		return
+	}
+
+	bias := NewActivityBias()
+	bias.Set(int(CMDActivity), conf.PercentageCmd())
+	bias.Set(int(FSActivity), 100-conf.PercentageCmd())
+	activity := MonkeyActivity(bias.RandomObject())
+	switch activity {
+	case CMDActivity:
+		m.cmdWork()
+	case FSActivity:
+		m.fsWork()
+	default:
+		panic(activity)
+	}
+}
+
+func (m *insaneMonkey) cmdWork() {
+	obBias := NewObjectBias()
+	obBias.Set(int(fs.File), conf.PercentageFileOP())
+	obBias.Set(int(fs.Dir), 100-conf.PercentageFileOP())
+
+	allDirs := m.worktree.AllDirs()
+	dirOpBias := NewDirOPBias()
+	if len(allDirs) == 0 {
+		dirOpBias.Set(int(fs.Create), 100)
+	} else {
+		dirOpBias.Set(int(fs.Create), 34)
+		dirOpBias.Set(int(fs.Delete), 33)
+		dirOpBias.Set(int(fs.Rename), 33)
+	}
+
+	allFiles := m.worktree.AllFiles()
+	fileOpBias := NewFileOPBias()
+	if len(allFiles) == 0 {
+		fileOpBias.Set(int(fs.Create), 100)
+	} else {
+		fileOpBias.Set(int(fs.Create), 20)
+		fileOpBias.Set(int(fs.Delete), 20)
+		fileOpBias.Set(int(fs.Rename), 20)
+		fileOpBias.Set(int(fs.Override), 40)
+	}
+
+	ob, op := randomFSOp(obBias, fileOpBias, dirOpBias)
+	m.worktree.Apply(ob, op, m.prepareArgs(allFiles, allDirs))
+}
+
+func (m *insaneMonkey) fsWork() {
 	obBias := NewObjectBias()
 	obBias.Set(int(fs.File), conf.PercentageFileOP())
 	obBias.Set(int(fs.Dir), 100-conf.PercentageFileOP())

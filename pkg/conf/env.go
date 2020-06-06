@@ -14,6 +14,7 @@ const (
 	EnvNameLength           = "NAME_LENGTH"
 	EnvWriteOnceLength      = "LENGTH_WRITE_ONCE"
 	EnvPercentageFileOP     = "PERCENTAGE_FILE_OPERATION"
+	EnvPercentageCmd        = "PERCENTAGE_CMD"
 	EnvWorktree             = "WORKTREE"
 	EnvSidecarStdFile       = "SIDECAR_STD_FILE"
 	EnvWebSocketPort        = "WEBSOCKET_PORT"
@@ -89,6 +90,12 @@ func WriteOnceLengthUpperBound() int {
 func PercentageFileOP() int {
 	return envInt(EnvPercentageFileOP, 70,
 		`🚁 %d%% filesystem operations would be on files`,
+	)
+}
+
+func PercentageCmd() int {
+	return envInt(EnvPercentageCmd, 10,
+		`🚁 %d%% command would be executed against file operations`,
 	)
 }
 

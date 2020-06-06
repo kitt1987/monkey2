@@ -68,3 +68,8 @@ type Command struct {
 type Seq struct {
 	cmds []*Command
 }
+
+func (s *Seq) Apply() {
+    panic("implement me")
+}
+

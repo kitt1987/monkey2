@@ -61,6 +61,18 @@ func (b PercentageDistribution) RandomObject() (i int) {
 	return
 }
 
+type MonkeyActivity int
+
+const (
+	FSActivity = MonkeyActivity(iota)
+	CMDActivity
+	TotalMonkeyActivities
+)
+
+func NewActivityBias() PercentageDistribution {
+	return make([]PercentageWithoutSign, TotalMonkeyActivities)
+}
+
 func NewObjectBias() PercentageDistribution {
 	return make([]PercentageWithoutSign, fs.TotalFSObject)
 }
