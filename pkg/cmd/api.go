@@ -1,12 +1,12 @@
 package cmd
 
 import (
-    "bufio"
-    "github.com/git-roll/monkey2/pkg/notify"
-    "io"
-    "os"
-    "os/exec"
-    "strings"
+	"bufio"
+	"github.com/git-roll/monkey2/pkg/notify"
+	"io"
+	"os"
+	"os/exec"
+	"strings"
 )
 
 func NewSeq(seqFile, worktree string) *Seq {
@@ -83,6 +83,6 @@ func (s *Seq) Apply(id int) {
     c.Stdout = os.Stdout
     c.Stderr = os.Stderr
 
-    notify.Printf(`💻 Exec command :"%s %s"`, c.String())
+    notify.Printf(`💻 Exec command :"%s"`, c.String())
     c.Run()
 }

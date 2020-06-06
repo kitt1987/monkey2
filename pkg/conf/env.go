@@ -64,7 +64,7 @@ func SidecarStdFile() string {
 func CmdSeqFile() string {
 	seq := os.Getenv(EnvCmdSeqFile)
 	if len(seq) > 0 {
-		notice(EnvSidecarStdFile, `🚁 Use command sequence in file "%s"`, seq)
+		notice(EnvCmdSeqFile, `🚁 Use command sequence in file "%s"`, seq)
 	}
 
 	return seq
