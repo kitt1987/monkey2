@@ -18,6 +18,7 @@ const (
 	EnvSidecarStdFile       = "SIDECAR_STD_FILE"
 	EnvWebSocketPort        = "WEBSOCKET_PORT"
 	EnvExcludedFiles        = "EXCLUDED_FILES"
+	EnvCmdSeqFile           = "CMD_SEQ_FILE"
 )
 
 var noticeOnce = make(map[string]bool)
@@ -57,6 +58,15 @@ func SidecarStdFile() string {
 
 	notice(EnvSidecarStdFile, `🚁 Stdout of the sidecar will be written to "%s"`, std)
 	return std
+}
+
+func CmdSeqFile() string {
+	seq := os.Getenv(EnvCmdSeqFile)
+	if len(seq) > 0 {
+		notice(EnvSidecarStdFile, `🚁 Use command sequence in file "%s"`, seq)
+	}
+
+	return seq
 }
 
 func WebSocketPort() int {
