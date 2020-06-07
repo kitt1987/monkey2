@@ -48,7 +48,11 @@ func NewCar() Car {
 
 	r.proc = exec.CommandContext(context.Background(), os.Args[2], args...)
 	r.proc.Env = os.Environ()
-	r.proc.Dir = conf.Worktree()
+	pwd := conf.SideCarPWD()
+	if len(pwd) > 0 {
+		r.proc.Dir = pwd
+	}
+
 	setTermSig(r.proc)
 	return r
 }

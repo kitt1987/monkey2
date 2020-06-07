@@ -24,7 +24,7 @@ roll:
         - squash
         - push: origin
         - cmd:
-            args: hub pull-request
+            args: hub pull-request --no-edit
   worktreeChanged:
     - on:
         worktree:

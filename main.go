@@ -10,6 +10,7 @@ import (
 	"io"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"os"
+	"os/exec"
 	"os/signal"
 	"syscall"
 )
@@ -46,24 +47,35 @@ func main() {
 
 	notify.Set(monNotifier)
 
-	var monkey char.Monkey
-	switch os.Args[1] {
-	case "insane":
-		notify.Printf("🐲 I'm a monkey. I'm INSANE!\n")
-		monkey = char.Insane(conf.Worktree())
-	default:
-		fmt.Println(Usage)
-		return
+	wt := conf.Worktree()
+	repo := conf.UseGitRepo()
+	if len(repo) > 0 {
+		notify.Printf("🚁 Clone %s=>%s\n", repo, wt)
+		out, err := exec.Command("git", "clone", repo, wt).Output()
+		if err != nil {
+			fmt.Printf("Can't clone from %s: %s\n%s", repo, err.Error(), string(out))
+			return
+		}
 	}
-
-	sidecar := side.NewCar()
-	sidecar.Start(sideNotifier)
 
 	stopC := make(chan struct{})
 	wg := wait.Group{}
 
 	if wss != nil {
 		wg.StartWithChannel(stopC, wss.Run)
+	}
+
+	sidecar := side.NewCar()
+	sidecar.Start(sideNotifier)
+
+	var monkey char.Monkey
+	switch os.Args[1] {
+	case "insane":
+		notify.Printf("🐲 I'm a monkey. I'm INSANE!\n")
+		monkey = char.Insane(wt)
+	default:
+		fmt.Println(Usage)
+		return
 	}
 
 	wg.StartWithChannel(stopC, monkey.StartWork)
@@ -106,5 +118,5 @@ func createNotifier() (side, monkey io.WriteCloser) {
 		return f, os.Stdout
 	}
 
-	panic(fmt.Sprintf(`specify either "%s"`, conf.EnvSidecarStdFile))
+	return os.Stdout, os.Stdout
 }
