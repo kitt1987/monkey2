@@ -59,8 +59,8 @@ const homePage = `<!doctype html>
     <meta charset="UTF-8" />
     <meta name="description" content="🐵" />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.js"></script>
+	<link href="https://cdn.bootcdn.net/ajax/libs/xterm/3.14.5/xterm.min.css" rel="stylesheet">
+	<script src="https://cdn.bootcdn.net/ajax/libs/xterm/3.14.5/xterm.min.js"></script>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">

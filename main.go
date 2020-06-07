@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 const Usage = `monkey [name] [sidecar]
@@ -46,16 +47,6 @@ func main() {
 
 	notify.Set(monNotifier)
 
-	var monkey char.Monkey
-	switch os.Args[1] {
-	case "insane":
-		notify.Printf("🐲 I'm a monkey. I'm INSANE!\n")
-		monkey = char.Insane(conf.Worktree())
-	default:
-		fmt.Println(Usage)
-		return
-	}
-
 	sidecar := side.NewCar()
 	sidecar.Start(sideNotifier)
 
@@ -64,6 +55,40 @@ func main() {
 
 	if wss != nil {
 		wg.StartWithChannel(stopC, wss.Run)
+	}
+
+	wt, generated := conf.Worktree()
+	if !generated {
+		notify.Printf("Wait for sidecar to create the worktree dir\n")
+		for {
+			_, err := os.Lstat(wt)
+			if os.IsNotExist(err) {
+				time.Sleep(500 * time.Millisecond)
+				continue
+			}
+
+			if err != nil {
+				fmt.Println("Can't use the specified worktree ", wt, err.Error())
+				return
+			}
+
+			break
+		}
+	}
+
+	repo := conf.UseGitRepo()
+	if len(repo) > 0 {
+		notify.Printf("Wait for sidecar to create the worktree dir\n")
+	}
+
+	var monkey char.Monkey
+	switch os.Args[1] {
+	case "insane":
+		notify.Printf("🐲 I'm a monkey. I'm INSANE!\n")
+		monkey = char.Insane(wt)
+	default:
+		fmt.Println(Usage)
+		return
 	}
 
 	wg.StartWithChannel(stopC, monkey.StartWork)
@@ -106,5 +131,5 @@ func createNotifier() (side, monkey io.WriteCloser) {
 		return f, os.Stdout
 	}
 
-	panic(fmt.Sprintf(`specify either "%s"`, conf.EnvSidecarStdFile))
+	return os.Stdout, os.Stdout
 }
