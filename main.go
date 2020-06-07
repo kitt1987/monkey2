@@ -10,9 +10,9 @@ import (
 	"io"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"os"
+	"os/exec"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 const Usage = `monkey [name] [sidecar]
@@ -47,8 +47,16 @@ func main() {
 
 	notify.Set(monNotifier)
 
-	sidecar := side.NewCar()
-	sidecar.Start(sideNotifier)
+	wt := conf.Worktree()
+	repo := conf.UseGitRepo()
+	if len(repo) > 0 {
+		notify.Printf("🚁 Clone %s=>%s\n", repo, wt)
+		out, err := exec.Command("git", "clone", repo, wt).Output()
+		if err != nil {
+			fmt.Printf("Can't clone from %s: %s\n%s", repo, err.Error(), string(out))
+			return
+		}
+	}
 
 	stopC := make(chan struct{})
 	wg := wait.Group{}
@@ -57,29 +65,8 @@ func main() {
 		wg.StartWithChannel(stopC, wss.Run)
 	}
 
-	wt, generated := conf.Worktree()
-	if !generated {
-		notify.Printf("Wait for sidecar to create the worktree dir\n")
-		for {
-			_, err := os.Lstat(wt)
-			if os.IsNotExist(err) {
-				time.Sleep(500 * time.Millisecond)
-				continue
-			}
-
-			if err != nil {
-				fmt.Println("Can't use the specified worktree ", wt, err.Error())
-				return
-			}
-
-			break
-		}
-	}
-
-	repo := conf.UseGitRepo()
-	if len(repo) > 0 {
-		notify.Printf("Wait for sidecar to create the worktree dir\n")
-	}
+	sidecar := side.NewCar()
+	sidecar.Start(sideNotifier)
 
 	var monkey char.Monkey
 	switch os.Args[1] {

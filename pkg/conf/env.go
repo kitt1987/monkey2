@@ -21,7 +21,7 @@ const (
 	EnvWebSocketPort        = "WEBSOCKET_PORT"
 	EnvExcludedFiles        = "EXCLUDED_FILES"
 	EnvCmdSeqFile           = "CMD_SEQ_FILE"
-	EnvGitRepo = "USE_GIT_REPO"
+	EnvGitRepo              = "USE_GIT_REPO"
 )
 
 var noticeOnce = make(map[string]bool)
@@ -43,10 +43,9 @@ func CoffeeTimeUpperBound() string {
 	return v
 }
 
-func Worktree() (wt string, generated bool) {
+func Worktree() (wt string) {
 	wt = os.Getenv(EnvWorktree)
 	if len(wt) == 0 {
-		generated = true
 		wt = filepath.Join(os.TempDir(), "monkey")
 	}
 
@@ -67,7 +66,7 @@ func UseGitRepo() (repo string) {
 func SideCarPWD() string {
 	wt := os.Getenv(EnvSidecarPWD)
 	if len(wt) == 0 {
-		return  ""
+		return ""
 	}
 
 	notice(EnvSidecarPWD, `🚁 The workdir of SideCar will be "%s"`, wt)
