@@ -5,12 +5,14 @@ import (
 	"github.com/git-roll/monkey2/pkg/conf"
 	"github.com/git-roll/monkey2/pkg/fs"
 	"github.com/git-roll/monkey2/pkg/notify"
+	"os"
 	"time"
 )
 
-func Insane(worktree string) Monkey {
+func Insane(worktree string, recover func(string)) Monkey {
 	m := &insaneMonkey{
 		worktree: fs.NewWorktree(worktree),
+		recover:  recover,
 	}
 
 	seq := conf.CmdSeqFile()
@@ -22,6 +24,7 @@ func Insane(worktree string) Monkey {
 }
 
 type insaneMonkey struct {
+	recover  func(string)
 	idle     *time.Timer
 	worktree fs.Worktree
 	commands *cmd.Seq
@@ -34,6 +37,18 @@ func (m insaneMonkey) Halt() {
 }
 
 func (m *insaneMonkey) StartWork(stopC <-chan struct{}) {
+	if m.recover != nil {
+		defer func() {
+			if r := recover(); r != nil {
+				if msg, ok := r.(string); ok {
+					m.recover(msg)
+				}
+
+				os.Exit(2)
+			}
+		}()
+	}
+
 	m.idle = time.NewTimer(time.Nanosecond)
 	for {
 		select {
