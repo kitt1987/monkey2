@@ -47,6 +47,13 @@ func main() {
 
 	notify.Set(monNotifier)
 
+	stopC := make(chan struct{})
+	wg := wait.Group{}
+
+	if wss != nil {
+		wg.StartWithChannel(stopC, wss.Run)
+	}
+
 	wt := conf.Worktree()
 	repo := conf.UseGitRepo()
 	if len(repo) > 0 {
@@ -56,13 +63,6 @@ func main() {
 			fmt.Printf("Can't clone from %s: %s\n%s", repo, err.Error(), string(out))
 			return
 		}
-	}
-
-	stopC := make(chan struct{})
-	wg := wait.Group{}
-
-	if wss != nil {
-		wg.StartWithChannel(stopC, wss.Run)
 	}
 
 	sidecar := side.NewCar()
