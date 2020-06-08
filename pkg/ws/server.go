@@ -107,4 +107,4 @@ var homePage = fmt.Sprintf(`<!doctype html>
     </script>
   </body>
 </html>
-`, time.Now())
+`, time.Now().Format(time.RFC1123Z))

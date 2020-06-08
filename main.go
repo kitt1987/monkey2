@@ -2,17 +2,22 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
+	"os/exec"
+	"os/signal"
+	"path/filepath"
+	"strings"
+	"syscall"
+	"time"
+
 	"github.com/git-roll/monkey2/pkg/char"
 	"github.com/git-roll/monkey2/pkg/conf"
 	"github.com/git-roll/monkey2/pkg/notify"
 	"github.com/git-roll/monkey2/pkg/side"
 	"github.com/git-roll/monkey2/pkg/ws"
-	"io"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"os"
-	"os/exec"
-	"os/signal"
-	"syscall"
 )
 
 const Usage = `monkey [name] [sidecar]
@@ -45,8 +50,6 @@ func main() {
 	defer sideNotifier.Close()
 	defer monNotifier.Close()
 
-	notify.Set(monNotifier)
-
 	stopC := make(chan struct{})
 	wg := wait.Group{}
 
@@ -56,13 +59,28 @@ func main() {
 
 	wt := conf.Worktree()
 	repo := conf.UseGitRepo()
+	var panicRecovery func(string)
 	if len(repo) > 0 {
+		sideDupNotifier := newFilterNotifier(sideNotifier)
+		monDupNotifier := newFilterNotifier(monNotifier)
+		sideNotifier = sideDupNotifier
+		monNotifier = monDupNotifier
+
+		notify.Set(monNotifier)
+
+		bootAt := time.Now()
+		panicRecovery = func(msg string) {
+			writeLastWordsToRepo(repo, wt, msg, monDupNotifier.LastNotes(), sideDupNotifier.LastNotes(), bootAt)
+		}
+
 		notify.Printf("🚁 Clone %s=>%s\n", repo, wt)
 		out, err := exec.Command("git", "clone", repo, wt).Output()
 		if err != nil {
 			fmt.Printf("Can't clone from %s: %s\n%s", repo, err.Error(), string(out))
 			return
 		}
+	} else {
+		notify.Set(monNotifier)
 	}
 
 	sidecar := side.NewCar()
@@ -72,7 +90,7 @@ func main() {
 	switch os.Args[1] {
 	case "insane":
 		notify.Printf("🐲 I'm a monkey. I'm INSANE!\n")
-		monkey = char.Insane(wt)
+		monkey = char.Insane(wt, panicRecovery)
 	default:
 		fmt.Println(Usage)
 		return
@@ -119,4 +137,90 @@ func createNotifier() (side, monkey io.WriteCloser) {
 	}
 
 	return os.Stdout, os.Stdout
+}
+
+func writeLastWordsToRepo(repo, worktree, message, monkeyLog, sidecarLog string, boot time.Time) {
+	fmt.Printf("RECORD LAST WORDS")
+	y, m, d := boot.Date()
+	h, min, s := boot.Clock()
+	ts := fmt.Sprintf("%d%02d%02d-%02d%02d%02d", y, m, d, h, min, s)
+
+	err := callGit(worktree, "checkout", "-B", "lastword"+ts, "master")
+	if err != nil {
+		fmt.Printf("checkout: %s", err)
+		return
+	}
+
+	lastwordsDir := filepath.Join(worktree, ".lastwords")
+	err = os.MkdirAll(lastwordsDir, 0755)
+	if err != nil {
+		fmt.Printf("mkdir: %s", err)
+		return
+	}
+
+	lastwordsFile := filepath.Join(lastwordsDir, ts)
+	err = ioutil.WriteFile(
+		lastwordsFile, []byte(strings.Join([]string{message, monkeyLog, sidecarLog}, "===\n")), 0644,
+	)
+	if err != nil {
+		fmt.Printf("write: %s", err)
+		return
+	}
+
+	err = callGit(worktree, "add", lastwordsFile)
+	if err != nil {
+		fmt.Printf("add: %s", err)
+		return
+	}
+
+	err = callGit(worktree, "commit", "-m", "last words")
+	if err != nil {
+		fmt.Printf("commit: %s", err)
+		return
+	}
+
+	err = callGit(worktree, "push", "origin", "master")
+	if err != nil {
+		fmt.Printf("push: %s", err)
+		return
+	}
+}
+
+func callGit(worktree string, args ...string) error {
+	cmd := exec.Command("git", args...)
+	cmd.Dir = worktree
+	return cmd.Run()
+}
+
+func newFilterNotifier(notifier io.WriteCloser) *noteFilter  {
+	return &noteFilter{
+		notifier:     notifier,
+		lastNotes:    make([]string, 0, 50),
+		maxLastNotes: 50,
+	}
+}
+
+type noteFilter struct {
+	notifier     io.WriteCloser
+	lastNotes    []string
+	maxLastNotes int
+}
+
+func (n2 *noteFilter) Write(p []byte) (n int, err error) {
+	if len(n2.lastNotes) < n2.maxLastNotes {
+		n2.lastNotes = append(n2.lastNotes, string(p))
+	} else {
+		n2.lastNotes[0] = ""
+		n2.lastNotes = append(n2.lastNotes[1:], string(p))
+	}
+
+	return n2.notifier.Write(p)
+}
+
+func (n2 *noteFilter) Close() error {
+	return n2.notifier.Close()
+}
+
+func (n2 noteFilter) LastNotes() string {
+	return strings.Join(n2.lastNotes, "\n")
 }
