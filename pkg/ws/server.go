@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"time"
 )
 
 func NewServer() *Server {
@@ -52,7 +53,7 @@ func (s *Server) Run(stopC <-chan struct{}) {
 	<-done
 }
 
-const homePage = `<!doctype html>
+var homePage = fmt.Sprintf(`<!doctype html>
 <html lang="en">
   <head>
     <title>Monkey</title>
@@ -68,7 +69,7 @@ const homePage = `<!doctype html>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item">
-            <a class="nav-link" href="#">INSANE</a>
+            <a class="nav-link" href="#">INSANE(booted at %s)</a>
           </li>
         </ul>
         <span>🐵</span>
@@ -106,4 +107,4 @@ const homePage = `<!doctype html>
     </script>
   </body>
 </html>
-`
+`, time.Now())
