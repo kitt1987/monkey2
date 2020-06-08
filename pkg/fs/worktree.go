@@ -128,15 +128,11 @@ func (w worktree) validateFSStructure() error {
 	mirrorDirs, mirrorFiles := w.mirror.readDir()
 	dirs, files := w.under.readDir()
 	if err := equalStringSlices(dirs, mirrorDirs); err != nil {
-		notify.Printf("err: %s\n(a)real:%#v\n(b)mirror:%#v\n", err, dirs, mirrorDirs)
-		notify.Printf("FS and mirror mismatched! Repo may checkout a new branch. Try again after a rest.\n")
-		return err
+		panic(fmt.Sprintf("err: %s\n(a)real:%#v\n(b)mirror:%#v\n", err, dirs, mirrorDirs))
 	}
 
 	if err := equalStringSlices(files, mirrorFiles); err != nil {
-		notify.Printf("err: %s\n(a)real:%#v\n(b)mirror:%#v\n", err, files, mirrorFiles)
-		notify.Printf("FS and mirror mismatched! Repo may checkout a new branch. Try again after a rest.\n")
-		return err
+		panic(fmt.Sprintf("err: %s\n(a)real:%#v\n(b)mirror:%#v\n", err, files, mirrorFiles))
 	}
 
 	return nil

@@ -8,11 +8,15 @@ import (
 	"github.com/git-roll/monkey2/pkg/side"
 	"github.com/git-roll/monkey2/pkg/ws"
 	"io"
+	"io/ioutil"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
+	"strings"
 	"syscall"
+	"time"
 )
 
 const Usage = `monkey [name] [sidecar]
@@ -63,6 +67,17 @@ func main() {
 			fmt.Printf("Can't clone from %s: %s\n%s", repo, err.Error(), string(out))
 			return
 		}
+
+		bootAt := time.Now()
+		defer func() {
+			if r := recover(); r != nil {
+				if msg, ok := r.(string); ok {
+					writeLastWordsToRepo(repo, wt, msg, monkey, sidecar, bootAt)
+				}
+
+				os.Exit(128)
+			}
+		}()
 	}
 
 	sidecar := side.NewCar()
@@ -119,4 +134,63 @@ func createNotifier() (side, monkey io.WriteCloser) {
 	}
 
 	return os.Stdout, os.Stdout
+}
+
+func writeLastWordsToRepo(repo, worktree, message, monkeyLog, sidecarLog string, boot time.Time) {
+	y, m, d := boot.Date()
+	h, min, s := boot.Clock()
+	ts := fmt.Sprintf("%d%02d%02d-%02d%02d%02d", y, m, d, h, min, s)
+
+	err := callGit(worktree, "checkout", "-B", "lastword"+ts, "master")
+	if err != nil {
+		return
+	}
+
+	lastwordsDir := filepath.Join(repo, ".lastwords")
+	err = os.MkdirAll(lastwordsDir, 0755)
+	if err != nil {
+		return
+	}
+
+	lastwordsFile := filepath.Join(lastwordsDir, ts)
+	err = ioutil.WriteFile(
+		lastwordsFile, []byte(strings.Join([]string{message, monkeyLog, sidecarLog}, "---/n")), 0644,
+		)
+	if err != nil {
+		return
+	}
+
+	err = callGit(worktree, "add", lastwordsFile)
+	if err != nil {
+		return
+	}
+
+	err = callGit(worktree, "commit", "-m", "last words")
+	if err != nil {
+		return
+	}
+
+	err = callGit(worktree, "push", "origin", "master")
+	if err != nil {
+		return
+	}
+}
+
+func callGit(worktree string, args ...string) error {
+	cmd := exec.Command("git", args...)
+	cmd.Dir = worktree
+	return cmd.Run()
+}
+
+type noteFilter struct {
+	notifier io.WriteCloser
+	lastNotes []string
+}
+
+func (n2 noteFilter) Write(p []byte) (n int, err error) {
+	return n2.notifier.Write(p)
+}
+
+func (n2 noteFilter) Close() error {
+	return n2.notifier.Close()
 }
