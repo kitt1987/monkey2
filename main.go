@@ -113,7 +113,7 @@ func main() {
 				return
 			}
 
-			notify.Printf("🛎 Got signal %s", sig)
+			notify.Printf("🛎 Got signal %s\n", sig)
 			signal.Stop(signCh)
 			notify.Printf("🛎 Monkey exit!\n")
 			close(stopC)
@@ -140,12 +140,13 @@ func createNotifier() (side, monkey io.WriteCloser) {
 }
 
 func writeLastWordsToRepo(repo, worktree, message, monkeyLog, sidecarLog string, boot time.Time) {
-	fmt.Printf("RECORD LAST WORDS")
+	fmt.Println("RECORD LAST WORDS")
 	y, m, d := boot.Date()
 	h, min, s := boot.Clock()
 	ts := fmt.Sprintf("%d%02d%02d-%02d%02d%02d", y, m, d, h, min, s)
 
-	err := callGit(worktree, "checkout", "-B", "lastword"+ts, "master")
+	branch := "lastword"+ts
+	err := callGit(worktree, "checkout", "-B", branch, "master")
 	if err != nil {
 		fmt.Printf("checkout: %s", err)
 		return
@@ -179,7 +180,7 @@ func writeLastWordsToRepo(repo, worktree, message, monkeyLog, sidecarLog string,
 		return
 	}
 
-	err = callGit(worktree, "push", "origin", "master")
+	err = callGit(worktree, "push", "origin", branch)
 	if err != nil {
 		fmt.Printf("push: %s", err)
 		return
