@@ -79,6 +79,13 @@ var (
 )
 
 func (wsw *websocketHandle) addConn(conn *websocket.Conn) <-chan struct{} {
+	notices := wsw.Notices()
+	for _, note := range notices {
+		if err := conn.WriteMessage(websocket.TextMessage, []byte(note)); err != nil {
+			return nil
+		}
+	}
+
 	closed := make(chan struct{})
 	wsw.writer.sessions = append(wsw.writer.sessions, websocketSession{
 		conn:   conn,
@@ -97,5 +104,9 @@ func (wsw *websocketHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	closed := wsw.addConn(conn)
+	if closed == nil {
+		return
+	}
+
 	<-closed
 }

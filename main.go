@@ -61,8 +61,8 @@ func main() {
 	repo := conf.UseGitRepo()
 	var panicRecovery func(string)
 	if len(repo) > 0 {
-		sideDupNotifier := newFilterNotifier(sideNotifier)
-		monDupNotifier := newFilterNotifier(monNotifier)
+		sideDupNotifier := notify.NewMirrorNotifier(sideNotifier)
+		monDupNotifier := notify.NewMirrorNotifier(monNotifier)
 		sideNotifier = sideDupNotifier
 		monNotifier = monDupNotifier
 
@@ -70,7 +70,7 @@ func main() {
 
 		bootAt := time.Now()
 		panicRecovery = func(msg string) {
-			writeLastWordsToRepo(repo, wt, msg, monDupNotifier.LastNotes(), sideDupNotifier.LastNotes(), bootAt)
+			writeLastWordsToRepo(repo, wt, msg, monDupNotifier.JoinNotices(), sideDupNotifier.JoinNotices(), bootAt)
 		}
 
 		notify.Printf("🚁 Clone %s=>%s\n", repo, wt)
@@ -191,37 +191,4 @@ func callGit(worktree string, args ...string) error {
 	cmd := exec.Command("git", args...)
 	cmd.Dir = worktree
 	return cmd.Run()
-}
-
-func newFilterNotifier(notifier io.WriteCloser) *noteFilter  {
-	return &noteFilter{
-		notifier:     notifier,
-		lastNotes:    make([]string, 0, 50),
-		maxLastNotes: 50,
-	}
-}
-
-type noteFilter struct {
-	notifier     io.WriteCloser
-	lastNotes    []string
-	maxLastNotes int
-}
-
-func (n2 *noteFilter) Write(p []byte) (n int, err error) {
-	if len(n2.lastNotes) < n2.maxLastNotes {
-		n2.lastNotes = append(n2.lastNotes, string(p))
-	} else {
-		n2.lastNotes[0] = ""
-		n2.lastNotes = append(n2.lastNotes[1:], string(p))
-	}
-
-	return n2.notifier.Write(p)
-}
-
-func (n2 *noteFilter) Close() error {
-	return n2.notifier.Close()
-}
-
-func (n2 noteFilter) LastNotes() string {
-	return strings.Join(n2.lastNotes, "\n")
 }
