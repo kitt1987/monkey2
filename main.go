@@ -161,7 +161,9 @@ func writeLastWordsToRepo(repo, worktree, message, monkeyLog, sidecarLog string,
 
 	lastwordsFile := filepath.Join(lastwordsDir, ts)
 	err = ioutil.WriteFile(
-		lastwordsFile, []byte(strings.Join([]string{message, monkeyLog, sidecarLog}, "===\n")), 0644,
+		lastwordsFile,
+		[]byte(strings.Join([]string{message, monkeyLog, sidecarLog}, "🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖\n")),
+		0644,
 	)
 	if err != nil {
 		fmt.Printf("write: %s", err)
