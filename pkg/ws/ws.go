@@ -1,18 +1,10 @@
 package ws
 
 import (
+	"github.com/git-roll/monkey2/pkg/notify"
 	"github.com/gorilla/websocket"
 	"net/http"
 )
-
-func newWSWriter() *websocketWriter {
-	w := &websocketWriter{
-		recv: make(chan []byte, 64),
-	}
-
-	go w.Start()
-	return w
-}
 
 type websocketSession struct {
 	conn   *websocket.Conn
@@ -61,14 +53,21 @@ func (wsw *websocketWriter) Close() error {
 	return nil
 }
 
-func (wsw *websocketWriter) addConn(conn *websocket.Conn) <-chan struct{} {
-	closed := make(chan struct{})
-	wsw.sessions = append(wsw.sessions, websocketSession{
-		conn:   conn,
-		closed: closed,
-	})
+type websocketHandle struct {
+	writer *websocketWriter
+	*notify.Mirror
+}
 
-	return closed
+func newWSWriter() *websocketHandle {
+	w := &websocketWriter{
+		recv: make(chan []byte, 64),
+	}
+
+	go w.Start()
+	return &websocketHandle{
+		writer: w,
+		Mirror: notify.NewMirrorNotifier(w),
+	}
 }
 
 var (
@@ -79,7 +78,17 @@ var (
 	}
 )
 
-func (wsw *websocketWriter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (wsw *websocketHandle) addConn(conn *websocket.Conn) <-chan struct{} {
+	closed := make(chan struct{})
+	wsw.writer.sessions = append(wsw.writer.sessions, websocketSession{
+		conn:   conn,
+		closed: closed,
+	})
+
+	return closed
+}
+
+func (wsw *websocketHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrade.Upgrade(w, r, nil)
 	if err != nil {
 		return
