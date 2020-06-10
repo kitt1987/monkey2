@@ -61,8 +61,8 @@ func main() {
 	repo := conf.UseGitRepo()
 	var panicRecovery func(string)
 	if len(repo) > 0 {
-		sideDupNotifier := newFilterNotifier(sideNotifier)
-		monDupNotifier := newFilterNotifier(monNotifier)
+		sideDupNotifier := notify.NewMirrorNotifier(sideNotifier)
+		monDupNotifier := notify.NewMirrorNotifier(monNotifier)
 		sideNotifier = sideDupNotifier
 		monNotifier = monDupNotifier
 
@@ -70,7 +70,7 @@ func main() {
 
 		bootAt := time.Now()
 		panicRecovery = func(msg string) {
-			writeLastWordsToRepo(repo, wt, msg, monDupNotifier.LastNotes(), sideDupNotifier.LastNotes(), bootAt)
+			writeLastWordsToRepo(repo, wt, msg, monDupNotifier.JoinNotices(), sideDupNotifier.JoinNotices(), bootAt)
 		}
 
 		notify.Printf("🚁 Clone %s=>%s\n", repo, wt)
@@ -113,7 +113,7 @@ func main() {
 				return
 			}
 
-			notify.Printf("🛎 Got signal %s", sig)
+			notify.Printf("🛎 Got signal %s\n", sig)
 			signal.Stop(signCh)
 			notify.Printf("🛎 Monkey exit!\n")
 			close(stopC)
@@ -140,12 +140,13 @@ func createNotifier() (side, monkey io.WriteCloser) {
 }
 
 func writeLastWordsToRepo(repo, worktree, message, monkeyLog, sidecarLog string, boot time.Time) {
-	fmt.Printf("RECORD LAST WORDS")
+	fmt.Println("RECORD LAST WORDS")
 	y, m, d := boot.Date()
 	h, min, s := boot.Clock()
 	ts := fmt.Sprintf("%d%02d%02d-%02d%02d%02d", y, m, d, h, min, s)
 
-	err := callGit(worktree, "checkout", "-B", "lastword"+ts, "master")
+	branch := "lastword"+ts
+	err := callGit(worktree, "checkout", "-B", branch, "master")
 	if err != nil {
 		fmt.Printf("checkout: %s", err)
 		return
@@ -179,7 +180,7 @@ func writeLastWordsToRepo(repo, worktree, message, monkeyLog, sidecarLog string,
 		return
 	}
 
-	err = callGit(worktree, "push", "origin", "master")
+	err = callGit(worktree, "push", "origin", branch)
 	if err != nil {
 		fmt.Printf("push: %s", err)
 		return
@@ -190,37 +191,4 @@ func callGit(worktree string, args ...string) error {
 	cmd := exec.Command("git", args...)
 	cmd.Dir = worktree
 	return cmd.Run()
-}
-
-func newFilterNotifier(notifier io.WriteCloser) *noteFilter  {
-	return &noteFilter{
-		notifier:     notifier,
-		lastNotes:    make([]string, 0, 50),
-		maxLastNotes: 50,
-	}
-}
-
-type noteFilter struct {
-	notifier     io.WriteCloser
-	lastNotes    []string
-	maxLastNotes int
-}
-
-func (n2 *noteFilter) Write(p []byte) (n int, err error) {
-	if len(n2.lastNotes) < n2.maxLastNotes {
-		n2.lastNotes = append(n2.lastNotes, string(p))
-	} else {
-		n2.lastNotes[0] = ""
-		n2.lastNotes = append(n2.lastNotes[1:], string(p))
-	}
-
-	return n2.notifier.Write(p)
-}
-
-func (n2 *noteFilter) Close() error {
-	return n2.notifier.Close()
-}
-
-func (n2 noteFilter) LastNotes() string {
-	return strings.Join(n2.lastNotes, "\n")
 }

@@ -83,6 +83,6 @@ func (s *Seq) Apply(id int) {
     c.Stdout = os.Stdout
     c.Stderr = os.Stderr
 
-    notify.Printf(`💻 Exec command :"%s"`+"\n", c.String())
+    notify.Printf(`📡 Exec command :"%s"`+"\n", c.String())
     c.Run()
 }
