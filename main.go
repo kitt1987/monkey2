@@ -83,7 +83,7 @@ func main() {
 		notify.Set(monNotifier)
 	}
 
-	sidecar := side.NewCar()
+	sidecar := side.NewCar(panicRecovery)
 	sidecar.Start(sideNotifier)
 
 	var monkey char.Monkey

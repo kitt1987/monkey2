@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 )
 
@@ -33,12 +34,13 @@ func (w chanWriter) Close() {
 	}
 }
 
-func NewCar() Car {
+func NewCar(recover func(string)) Car {
 	if len(os.Args) < 3 {
 		return newPlaceholder()
 	}
 
 	r := &Runner{
+		recover: recover,
 		done: make(chan error, 1),
 	}
 	var args []string
@@ -60,6 +62,7 @@ func NewCar() Car {
 type Runner struct {
 	//stdout chanWriter
 	//stderr chanWriter
+	recover func(string)
 	proc *exec.Cmd
 	done chan error
 }
@@ -69,6 +72,18 @@ func (r *Runner) Start(console io.Writer) {
 	r.proc.Stderr = console
 
 	go func() {
+		defer func() {
+			if re := recover(); re != nil {
+				if msg, ok := re.(string); ok {
+					stackBuf := make([]byte, 8192)
+					numBytes := runtime.Stack(stackBuf, false)
+					r.recover(msg + "\n" + string(stackBuf[:numBytes]))
+				}
+
+				os.Exit(2)
+			}
+		}()
+
 		notify.Printf(`🚁 Start sidecar "%s"`+"\n", strings.Join(r.proc.Args, " "))
 		r.done <- r.proc.Run()
 		close(r.done)
