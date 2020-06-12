@@ -4,15 +4,11 @@ import (
 	"github.com/git-roll/monkey2/pkg/cmd"
 	"github.com/git-roll/monkey2/pkg/conf"
 	"github.com/git-roll/monkey2/pkg/fs"
-	"github.com/git-roll/monkey2/pkg/notify"
-	"os"
-	"time"
 )
 
 func Insane(worktree string, recover func(string)) Monkey {
 	m := &insaneMonkey{
 		worktree: fs.NewWorktree(worktree),
-		recover:  recover,
 	}
 
 	seq := conf.CmdSeqFile()
@@ -20,52 +16,18 @@ func Insane(worktree string, recover func(string)) Monkey {
 		m.commands = cmd.NewSeq(seq, worktree)
 	}
 
-	return m
+	return &monkey{
+		recover:    recover,
+		monkeyChar: m,
+	}
 }
 
 type insaneMonkey struct {
-	recover  func(string)
-	idle     *time.Timer
 	worktree fs.Worktree
 	commands *cmd.Seq
 }
 
-func (m insaneMonkey) Halt() {
-	if m.idle != nil && !m.idle.Stop() {
-		<-m.idle.C
-	}
-}
-
-func (m *insaneMonkey) StartWork(stopC <-chan struct{}) {
-	if m.recover != nil {
-		defer func() {
-			if r := recover(); r != nil {
-				if msg, ok := r.(string); ok {
-					m.recover(msg)
-				}
-
-				os.Exit(2)
-			}
-		}()
-	}
-
-	m.idle = time.NewTimer(time.Nanosecond)
-	for {
-		select {
-		case <-m.idle.C:
-			m.work()
-
-			idle := randomCoffeeTime()
-			notify.Printf("☕️ coffee time: %s\n", idle)
-			m.idle.Reset(idle)
-		case <-stopC:
-			m.Halt()
-			return
-		}
-	}
-}
-
-func (m *insaneMonkey) work() {
+func (m *insaneMonkey) Work() {
 	if m.commands == nil {
 		m.fsWork()
 		return
