@@ -30,7 +30,12 @@ func getLocalRepoPath(worktree string) string {
 	return filepath.Join(filepath.Base(worktree), "target.git")
 }
 
-func bareClone(repo, local string) (commits []string, err error) {
+type cheatedCommit struct {
+	Hash   string
+	Merged bool
+}
+
+func bareClone(repo, local string) (commits map[string]bool, err error) {
 	notify.Printf("🚁 Clone target repo %s\n", repo)
 	cmd := exec.Command("git", "clone", "--bare", repo, local)
 	cmd.Stdout = notify.Writer()
@@ -47,6 +52,7 @@ func bareClone(repo, local string) (commits []string, err error) {
 
 	reader := bufio.NewReader(strings.NewReader(string(out)))
 
+	commits = make(map[string]bool)
 	var partialLine []string
 	for {
 		line, remaining, err := reader.ReadLine()
@@ -59,13 +65,16 @@ func bareClone(repo, local string) (commits []string, err error) {
 			continue
 		}
 
+		var wholeLine string
 		if len(partialLine) > 0 {
-			commits = append(commits, strings.Join(append(partialLine, string(line)), ""))
+			wholeLine = strings.Join(append(partialLine, string(line)), "")
 			partialLine = nil
-			continue
+		} else {
+			wholeLine = string(line)
 		}
 
-		commits = append(commits, string(line))
+		segs := strings.Split(wholeLine, " ")
+		commits[segs[0]] = len(segs) > 2
 	}
 
 	return
@@ -78,12 +87,12 @@ type cheatingMonkey struct {
 }
 
 func (c *cheatingMonkey) Work() {
-    if len(c.commits) == 0 {
-        notify.Printf("🚁 All code is cheated")
-        return
-    }
+	if len(c.commits) == 0 {
+		notify.Printf("🚁 All code is cheated")
+		return
+	}
 
-    notify.Printf("👻 Cheat commit %s", c.commits[0])
+	notify.Printf("👻 Cheat commit %s", c.commits[0])
 	cmd := exec.Command("git",
 		"--work-tree", c.worktree, "--git-dir", c.targetLocal,
 		"checkout", c.commits[0])
@@ -91,9 +100,13 @@ func (c *cheatingMonkey) Work() {
 	cmd.Stderr = notify.Writer()
 	err := cmd.Run()
 	if err != nil {
-	    panic(c.commits[0])
-    }
+		panic(c.commits[0])
+	}
 
-    c.commits[0] = ""
-    c.commits = c.commits[1:]
+	c.commits[0] = ""
+	c.commits = c.commits[1:]
+}
+
+func (c *cheatingMonkey) buildPR() {
+
 }
