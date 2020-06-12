@@ -60,8 +60,6 @@ func NewCar(recover func(string)) Car {
 }
 
 type Runner struct {
-	//stdout chanWriter
-	//stderr chanWriter
 	recover func(string)
 	proc *exec.Cmd
 	done chan error
@@ -103,19 +101,4 @@ func (r *Runner) Kill() {
 	if err := r.proc.Wait(); err != nil {
 		return
 	}
-
-	//r.stdout.Close()
-	//r.stderr.Close()
 }
-
-//func (r *Runner) Stdout() <-chan string {
-//	ch := make(chan string)
-//	r.stdout = append(r.stdout, ch)
-//	return ch
-//}
-//
-//func (r *Runner) Stderr() <-chan string {
-//	ch := make(chan string)
-//	r.stderr = append(r.stderr, ch)
-//	return ch
-//}
