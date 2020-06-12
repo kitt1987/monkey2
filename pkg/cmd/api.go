@@ -80,8 +80,8 @@ func (s *Seq) Apply(id int) {
     c := exec.Command(s.CMD[id].Name, s.CMD[id].Args...)
     c.Env = os.Environ()
     c.Dir = s.dir
-    c.Stdout = os.Stdout
-    c.Stderr = os.Stderr
+    c.Stdout = notify.Writer()
+    c.Stderr = notify.Writer()
 
     notify.Printf(`📡 Exec command :"%s"`+"\n", c.String())
     c.Run()

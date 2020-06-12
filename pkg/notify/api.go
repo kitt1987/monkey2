@@ -16,3 +16,7 @@ func Printf(text string, a ...interface{}) {
 	fmt.Fprintf(no, text, a...)
 	fmt.Printf(text, a...)
 }
+
+func Writer() io.Writer {
+	return no
+}

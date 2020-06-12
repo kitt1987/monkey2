@@ -1,6 +1,7 @@
 package char
 
 import (
+    "github.com/git-roll/monkey2/pkg/notify"
     "os/exec"
     "path/filepath"
 )
@@ -24,8 +25,16 @@ func getLocalRepoPath(worktree string) string {
     return filepath.Join(filepath.Base(worktree), "target.git")
 }
 
-func bareClone(repo, local string) error {
+func bareClone(repo, local string) (commits[]string, err error) {
+    notify.Printf("🚁 Clone target repo %s\n", repo)
     cmd := exec.Command("git", "clone", "--bare", repo, local)
+    cmd.Stdout = notify.Writer()
+    cmd.Stderr = notify.Writer()
+    if err = cmd.Run(); err != nil {
+        return
+    }
+
+    cmdListCommits := exec.Command("git", "--git-dir", local, "")
 }
 
 type cheatingMonkey struct {
@@ -34,5 +43,10 @@ type cheatingMonkey struct {
 }
 
 func (c *cheatingMonkey) Work() {
-    panic("implement me")
+    cmd := exec.Command("git",
+        "--work-tree", c.worktree, "--git-dir", c.targetLocal,
+        "checkout", )
+    cmd.Stdout = notify.Writer()
+    cmd.Stderr = notify.Writer()
+    return cmd.Run()
 }
