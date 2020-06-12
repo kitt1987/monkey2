@@ -21,6 +21,7 @@ const (
 	EnvWebSocketPort        = "WEBSOCKET_PORT"
 	EnvExcludedFiles        = "EXCLUDED_FILES"
 	EnvCmdSeqFile           = "CMD_SEQ_FILE"
+	EnvCmdBuildPR = "CMD_BUILD_PR"
 	EnvGitRepo              = "USE_GIT_REPO"
 )
 
@@ -90,6 +91,15 @@ func CmdSeqFile() string {
 	}
 
 	return seq
+}
+
+func CmdBuildPR() string {
+	pr := os.Getenv(EnvCmdBuildPR)
+	if len(pr) > 0 {
+		notice(EnvCmdBuildPR, `🚁 Use command "%s" to build PR`, pr)
+	}
+
+	return pr
 }
 
 func WebSocketPort() int {

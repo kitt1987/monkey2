@@ -1,12 +1,14 @@
 package char
 
 import (
-	"bufio"
-	"github.com/git-roll/monkey2/pkg/notify"
-	"io"
-	"os/exec"
-	"path/filepath"
-	"strings"
+    "bufio"
+    "github.com/git-roll/monkey2/pkg/cmd"
+    "github.com/git-roll/monkey2/pkg/conf"
+    "github.com/git-roll/monkey2/pkg/notify"
+    "io"
+    "os/exec"
+    "path/filepath"
+    "strings"
 )
 
 func Cheating(worktree, targetRepo string, recover func(string)) Monkey {
@@ -16,14 +18,21 @@ func Cheating(worktree, targetRepo string, recover func(string)) Monkey {
 		panic(err)
 	}
 
+	m := &cheatingMonkey{
+        targetLocal: localRepo,
+        worktree:    worktree,
+        commits:     commits,
+    }
+
+    pr := conf.CmdBuildPR()
+    if len(pr) > 0 {
+        m.buildPR = cmd.NewSeqFromText(pr, worktree)
+    }
+
 	return &monkey{
-		recover: recover,
-		monkeyChar: &cheatingMonkey{
-			targetLocal: localRepo,
-			worktree:    worktree,
-			commits:     commits,
-		},
-	}
+        recover: recover,
+        monkeyChar: m,
+    }
 }
 
 func getLocalRepoPath(worktree string) string {
@@ -35,7 +44,7 @@ type cheatedCommit struct {
 	Merged bool
 }
 
-func bareClone(repo, local string) (commits map[string]bool, err error) {
+func bareClone(repo, local string) (commits []*cheatedCommit, err error) {
 	notify.Printf("🚁 Clone target repo %s\n", repo)
 	cmd := exec.Command("git", "clone", "--bare", repo, local)
 	cmd.Stdout = notify.Writer()
@@ -52,7 +61,6 @@ func bareClone(repo, local string) (commits map[string]bool, err error) {
 
 	reader := bufio.NewReader(strings.NewReader(string(out)))
 
-	commits = make(map[string]bool)
 	var partialLine []string
 	for {
 		line, remaining, err := reader.ReadLine()
@@ -74,7 +82,10 @@ func bareClone(repo, local string) (commits map[string]bool, err error) {
 		}
 
 		segs := strings.Split(wholeLine, " ")
-		commits[segs[0]] = len(segs) > 2
+		commits = append(commits, &cheatedCommit{
+            Hash:   segs[0],
+            Merged: len(segs) > 2,
+        })
 	}
 
 	return
@@ -83,7 +94,8 @@ func bareClone(repo, local string) (commits map[string]bool, err error) {
 type cheatingMonkey struct {
 	worktree    string
 	targetLocal string
-	commits     []string
+	commits []*cheatedCommit
+    buildPR *cmd.Seq
 }
 
 func (c *cheatingMonkey) Work() {
@@ -95,7 +107,7 @@ func (c *cheatingMonkey) Work() {
 	notify.Printf("👻 Cheat commit %s", c.commits[0])
 	cmd := exec.Command("git",
 		"--work-tree", c.worktree, "--git-dir", c.targetLocal,
-		"checkout", c.commits[0])
+		"checkout", c.commits[0].Hash)
 	cmd.Stdout = notify.Writer()
 	cmd.Stderr = notify.Writer()
 	err := cmd.Run()
@@ -103,10 +115,10 @@ func (c *cheatingMonkey) Work() {
 		panic(c.commits[0])
 	}
 
-	c.commits[0] = ""
+	if c.commits[0].Merged && c.buildPR != nil {
+        c.buildPR.Apply(0)
+    }
+
+	c.commits[0] = nil
 	c.commits = c.commits[1:]
-}
-
-func (c *cheatingMonkey) buildPR() {
-
 }

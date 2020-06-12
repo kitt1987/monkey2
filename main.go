@@ -22,10 +22,12 @@ import (
 
 const Usage = `monkey [name] [sidecar]
 
-name could be one of [insane].
+name could be one of [insane, cheating].
 You can also run a sidecar to watch the monkey. e.g.
 
-> monkey insane git roll`
+> monkey insane git roll
+
+> monkey cheating git roll`
 
 func main() {
 	if len(os.Args) < 2 {
@@ -91,6 +93,9 @@ func main() {
 	case "insane":
 		notify.Printf("🐲 I'm a monkey. I'm INSANE!\n")
 		monkey = char.Insane(wt, panicRecovery)
+	case "cheating":
+		notify.Printf("🦊 I'm a monkey. I'm going to cheat some repos!\n")
+		monkey = char.Cheating(wt, , panicRecovery())
 	default:
 		fmt.Println(Usage)
 		return

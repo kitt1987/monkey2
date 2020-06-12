@@ -13,7 +13,7 @@ func Insane(worktree string, recover func(string)) Monkey {
 
 	seq := conf.CmdSeqFile()
 	if len(seq) > 0 {
-		m.commands = cmd.NewSeq(seq, worktree)
+		m.commands = cmd.NewSeqFromFile(seq, worktree)
 	}
 
 	return &monkey{
