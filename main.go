@@ -27,7 +27,7 @@ You can also run a sidecar to watch the monkey. e.g.
 
 > monkey insane git roll
 
-> monkey cheating git roll`
+> monkey cheating git@github.com:git-roll/monkey2.git git roll`
 
 func main() {
 	if len(os.Args) < 2 {
@@ -85,21 +85,29 @@ func main() {
 		notify.Set(monNotifier)
 	}
 
-	sidecar := side.NewCar(panicRecovery)
-	sidecar.Start(sideNotifier)
-
+	var sidecarArgs []string
 	var monkey char.Monkey
 	switch os.Args[1] {
 	case "insane":
 		notify.Printf("🐲 I'm a monkey. I'm INSANE!\n")
 		monkey = char.Insane(wt, panicRecovery)
+		sidecarArgs = os.Args[2:]
 	case "cheating":
+		if len(os.Args) < 3 {
+			fmt.Println(Usage)
+			return
+		}
+
 		notify.Printf("🦊 I'm a monkey. I'm going to cheat some repos!\n")
-		monkey = char.Cheating(wt, , panicRecovery())
+		monkey = char.Cheating(wt, os.Args[2], panicRecovery)
+		sidecarArgs = os.Args[3:]
 	default:
 		fmt.Println(Usage)
 		return
 	}
+
+	sidecar := side.NewCar(sidecarArgs, panicRecovery)
+	sidecar.Start(sideNotifier)
 
 	wg.StartWithChannel(stopC, monkey.StartWork)
 
