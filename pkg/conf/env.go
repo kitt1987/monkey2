@@ -21,8 +21,9 @@ const (
 	EnvWebSocketPort        = "WEBSOCKET_PORT"
 	EnvExcludedFiles        = "EXCLUDED_FILES"
 	EnvCmdSeqFile           = "CMD_SEQ_FILE"
-	EnvCmdBuildPR = "CMD_BUILD_PR"
+	EnvCmdBuildPR           = "CMD_BUILD_PR"
 	EnvGitRepo              = "USE_GIT_REPO"
+	EnvCheatingRepo         = "CHEATING_REPO"
 )
 
 var noticeOnce = make(map[string]bool)
@@ -100,6 +101,15 @@ func CmdBuildPR() string {
 	}
 
 	return pr
+}
+
+func CheatingRepo() string {
+	repo := os.Getenv(EnvCheatingRepo)
+	if len(repo) > 0 {
+		notice(EnvCheatingRepo, `🚁 Cheat repo "%s"`, repo)
+	}
+
+	return repo
 }
 
 func WebSocketPort() int {

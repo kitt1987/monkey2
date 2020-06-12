@@ -9,8 +9,11 @@ bin:
 linux:
 	GOOS=linux GOARCH=amd64 $(MAKE)
 
-insane: linux
-	@docker build -f hack/insane.dockerfile -t monkey:insane .
+monkey: linux
+	@docker build -f hack/Dockerfile -t monkey:latest .
 
 insane-gr:
 	@docker build -f hack/insane-gr/insane.dockerfile -t monkey:insane-gr .
+
+cheating-gr:
+	@docker build -f hack/insane-gr/cheating.dockerfile -t monkey:cheating-gr .

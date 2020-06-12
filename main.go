@@ -27,7 +27,7 @@ You can also run a sidecar to watch the monkey. e.g.
 
 > monkey insane git roll
 
-> monkey cheating git@github.com:git-roll/monkey2.git git roll`
+> monkey cheating git roll`
 
 func main() {
 	if len(os.Args) < 2 {
@@ -85,28 +85,20 @@ func main() {
 		notify.Set(monNotifier)
 	}
 
-	var sidecarArgs []string
 	var monkey char.Monkey
 	switch os.Args[1] {
 	case "insane":
 		notify.Printf("🐲 I'm a monkey. I'm INSANE!\n")
 		monkey = char.Insane(wt, panicRecovery)
-		sidecarArgs = os.Args[2:]
 	case "cheating":
-		if len(os.Args) < 3 {
-			fmt.Println(Usage)
-			return
-		}
-
 		notify.Printf("🦊 I'm a monkey. I'm going to cheat some repos!\n")
-		monkey = char.Cheating(wt, os.Args[2], panicRecovery)
-		sidecarArgs = os.Args[3:]
+		monkey = char.Cheating(wt, conf.CheatingRepo(), panicRecovery)
 	default:
 		fmt.Println(Usage)
 		return
 	}
 
-	sidecar := side.NewCar(sidecarArgs, panicRecovery)
+	sidecar := side.NewCar(os.Args[2:], panicRecovery)
 	sidecar.Start(sideNotifier)
 
 	wg.StartWithChannel(stopC, monkey.StartWork)
@@ -158,7 +150,7 @@ func writeLastWordsToRepo(repo, worktree, message, monkeyLog, sidecarLog string,
 	h, min, s := boot.Clock()
 	ts := fmt.Sprintf("%d%02d%02d-%02d%02d%02d", y, m, d, h, min, s)
 
-	branch := "lastword"+ts
+	branch := "lastword" + ts
 	err := callGit(worktree, "checkout", "-B", branch, "master")
 	if err != nil {
 		fmt.Printf("checkout: %s", err)
