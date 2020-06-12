@@ -13,7 +13,7 @@ monkey: linux
 	@docker build -f hack/Dockerfile -t monkey:latest .
 
 insane-gr:
-	@docker build -f hack/insane-gr/insane.dockerfile -t monkey:insane-gr .
+	@docker build -f hack/gr/insane.dockerfile -t monkey:insane-gr .
 
 cheating-gr:
-	@docker build -f hack/insane-gr/cheating.dockerfile -t monkey:cheating-gr .
+	@docker build -f hack/gr/cheating.dockerfile -t monkey:cheating-gr .

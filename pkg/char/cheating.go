@@ -1,14 +1,15 @@
 package char
 
 import (
-    "bufio"
-    "github.com/git-roll/monkey2/pkg/cmd"
-    "github.com/git-roll/monkey2/pkg/conf"
-    "github.com/git-roll/monkey2/pkg/notify"
-    "io"
-    "os/exec"
-    "path/filepath"
-    "strings"
+	"bufio"
+	"bytes"
+	"github.com/git-roll/monkey2/pkg/cmd"
+	"github.com/git-roll/monkey2/pkg/conf"
+	"github.com/git-roll/monkey2/pkg/notify"
+	"io"
+	"os/exec"
+	"path/filepath"
+	"strings"
 )
 
 func Cheating(worktree, targetRepo string, recover func(string)) Monkey {
@@ -19,29 +20,30 @@ func Cheating(worktree, targetRepo string, recover func(string)) Monkey {
 	}
 
 	m := &cheatingMonkey{
-        targetLocal: localRepo,
-        worktree:    worktree,
-        commits:     commits,
-    }
+		targetLocal: localRepo,
+		worktree:    worktree,
+		commits:     commits,
+	}
 
-    pr := conf.CmdBuildPR()
-    if len(pr) > 0 {
-        m.buildPR = cmd.NewSeqFromText(pr, worktree)
-    }
+	pr := conf.CmdBuildPR()
+	if len(pr) > 0 {
+		m.buildPR = cmd.NewSeqFromText(pr, worktree)
+	}
 
 	return &monkey{
-        recover: recover,
-        monkeyChar: m,
-    }
+		recover:    recover,
+		monkeyChar: m,
+	}
 }
 
 func getLocalRepoPath(worktree string) string {
-	return filepath.Join(filepath.Base(worktree), "target.git")
+	return filepath.Join(filepath.Dir(worktree), "target.git")
 }
 
 type cheatedCommit struct {
-	Hash   string
-	Merged bool
+	Hash    string
+	Comment string
+	Merged  bool
 }
 
 func bareClone(repo, local string) (commits []*cheatedCommit, err error) {
@@ -53,7 +55,7 @@ func bareClone(repo, local string) (commits []*cheatedCommit, err error) {
 		return
 	}
 
-	cmdListCommits := exec.Command("git", "--git-dir", local, "log", "--reverse", "--format=%h %p")
+	cmdListCommits := exec.Command("git", "--git-dir", local, "log", "--reverse", `--format=%h %p|%s`)
 	out, err := cmdListCommits.Output()
 	if err != nil {
 		return
@@ -81,44 +83,53 @@ func bareClone(repo, local string) (commits []*cheatedCommit, err error) {
 			wholeLine = string(line)
 		}
 
-		segs := strings.Split(wholeLine, " ")
+		commentSet := strings.Split(wholeLine, "|")
+		segs := strings.Split(commentSet[0], " ")
 		commits = append(commits, &cheatedCommit{
-            Hash:   segs[0],
-            Merged: len(segs) > 2,
-        })
+			Hash:    segs[0],
+			Comment: strings.Join(commentSet[1:], "|"),
+			Merged:  len(segs) > 2,
+		})
 	}
 
+	notify.Printf("🚁 Found %d commits in the target repo\n", len(commits))
 	return
 }
 
 type cheatingMonkey struct {
 	worktree    string
 	targetLocal string
-	commits []*cheatedCommit
-    buildPR *cmd.Seq
+	commits     []*cheatedCommit
+	buildPR     *cmd.Seq
 }
 
 func (c *cheatingMonkey) Work() {
 	if len(c.commits) == 0 {
-		notify.Printf("🚁 All code is cheated")
+		notify.Printf("🚁 All code is cheated\n")
 		return
 	}
 
-	notify.Printf("👻 Cheat commit %s", c.commits[0])
+	notify.Printf("👻 Cheat commit [%s] %s\n", c.commits[0].Hash, c.commits[0].Comment)
+
+	buf := &bytes.Buffer{}
 	cmd := exec.Command("git",
 		"--work-tree", c.worktree, "--git-dir", c.targetLocal,
-		"checkout", c.commits[0].Hash)
-	cmd.Stdout = notify.Writer()
-	cmd.Stderr = notify.Writer()
+		"checkout", "-f", c.commits[0].Hash)
+	cmd.Stdout = buf
+	cmd.Stderr = buf
 	err := cmd.Run()
 	if err != nil {
-		panic(c.commits[0])
+		panic(buf.String())
 	}
 
 	if c.commits[0].Merged && c.buildPR != nil {
-        c.buildPR.Apply(0)
-    }
+		c.buildPR.Apply(0)
+	}
 
 	c.commits[0] = nil
 	c.commits = c.commits[1:]
+
+	if len(c.commits) == 0 && c.buildPR != nil {
+		c.buildPR.Apply(0)
+	}
 }

@@ -7,6 +7,8 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -69,7 +71,7 @@ var homePage = fmt.Sprintf(`<!doctype html>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item">
-            <a class="nav-link" href="#">INSANE(booted at %s)</a>
+            <a class="nav-link" href="#">%s(booted at %s)</a>
           </li>
         </ul>
         <span>🐵</span>
@@ -107,4 +109,4 @@ var homePage = fmt.Sprintf(`<!doctype html>
     </script>
   </body>
 </html>
-`, time.Now().Format(time.RFC1123Z))
+`, strings.ToUpper(strings.Join(os.Args[1:], " ")), time.Now().Format(time.RFC1123Z))
