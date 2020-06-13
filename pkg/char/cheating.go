@@ -47,12 +47,14 @@ type cheatedCommit struct {
 }
 
 func bareClone(repo, local string) (commits []*cheatedCommit, err error) {
-	notify.Printf("🚁 Clone target repo %s\n", repo)
-	cmd := exec.Command("git", "clone", "--bare", repo, local)
-	cmd.Stdout = notify.Writer()
-	cmd.Stderr = notify.Writer()
-	if err = cmd.Run(); err != nil {
-		return
+	if len(repo) > 0 {
+		notify.Printf("🚁 Clone target repo %s\n", repo)
+		cmd := exec.Command("git", "clone", "--bare", repo, local)
+		cmd.Stdout = notify.Writer()
+		cmd.Stderr = notify.Writer()
+		if err = cmd.Run(); err != nil {
+			return
+		}
 	}
 
 	cmdListCommits := exec.Command("git", "--git-dir", local, "log", "--reverse", `--format=%h %p|%s`)
