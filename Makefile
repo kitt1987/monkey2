@@ -17,3 +17,6 @@ insane-gr:
 
 cheating-gr:
 	@docker build -f hack/gr/cheating.dockerfile -t monkey:cheating-gr .
+
+cheating-gr-rails:
+	@docker build -f hack/gr/cheating-rails.dockerfile -t monkey:cheating-gr-rails .
