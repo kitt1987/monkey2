@@ -13,8 +13,11 @@ import (
 )
 
 func NewServer() *Server {
+	booted := time.Now()
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		if _, err := writer.Write([]byte(homePage)); err != nil {
+		if _, err := writer.Write(
+			[]byte(fmt.Sprintf(homePage, strings.ToUpper(os.Args[1]), time.Now().Sub(booted))),
+		); err != nil {
 			fmt.Printf("fail to write the client: %s", err)
 		}
 	})
@@ -55,7 +58,7 @@ func (s *Server) Run(stopC <-chan struct{}) {
 	<-done
 }
 
-var homePage = fmt.Sprintf(`<!doctype html>
+var homePage = `<!doctype html>
 <html lang="en">
   <head>
     <title>Monkey</title>
@@ -71,7 +74,7 @@ var homePage = fmt.Sprintf(`<!doctype html>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item">
-            <a class="nav-link" href="#">%s(booted at %s)</a>
+            <a class="nav-link" href="#">%s(booted %s ago)</a>
           </li>
         </ul>
         <span>🐵</span>
@@ -109,4 +112,4 @@ var homePage = fmt.Sprintf(`<!doctype html>
     </script>
   </body>
 </html>
-`, strings.ToUpper(strings.Join(os.Args[1:], " ")), time.Now().Format(time.RFC1123Z))
+`
