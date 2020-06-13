@@ -22,10 +22,12 @@ import (
 
 const Usage = `monkey [name] [sidecar]
 
-name could be one of [insane].
+name could be one of [insane, cheating].
 You can also run a sidecar to watch the monkey. e.g.
 
-> monkey insane git roll`
+> monkey insane git roll
+
+> monkey cheating git roll`
 
 func main() {
 	if len(os.Args) < 2 {
@@ -83,18 +85,21 @@ func main() {
 		notify.Set(monNotifier)
 	}
 
-	sidecar := side.NewCar(panicRecovery)
-	sidecar.Start(sideNotifier)
-
 	var monkey char.Monkey
 	switch os.Args[1] {
 	case "insane":
 		notify.Printf("🐲 I'm a monkey. I'm INSANE!\n")
 		monkey = char.Insane(wt, panicRecovery)
+	case "cheating":
+		notify.Printf("🦊 I'm a monkey. I'm going to cheat some repos!\n")
+		monkey = char.Cheating(wt, conf.CheatingRepo(), panicRecovery)
 	default:
 		fmt.Println(Usage)
 		return
 	}
+
+	sidecar := side.NewCar(os.Args[2:], panicRecovery)
+	sidecar.Start(sideNotifier)
 
 	wg.StartWithChannel(stopC, monkey.StartWork)
 
@@ -145,7 +150,7 @@ func writeLastWordsToRepo(repo, worktree, message, monkeyLog, sidecarLog string,
 	h, min, s := boot.Clock()
 	ts := fmt.Sprintf("%d%02d%02d-%02d%02d%02d", y, m, d, h, min, s)
 
-	branch := "lastword"+ts
+	branch := "lastword" + ts
 	err := callGit(worktree, "checkout", "-B", branch, "master")
 	if err != nil {
 		fmt.Printf("checkout: %s", err)

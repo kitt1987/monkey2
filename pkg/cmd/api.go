@@ -9,14 +9,22 @@ import (
 	"strings"
 )
 
-func NewSeq(seqFile, worktree string) *Seq {
+func NewSeqFromFile(seqFile, worktree string) *Seq {
 	f, err := os.Open(seqFile)
 	if err != nil {
 		panic(err)
 	}
 
 	defer f.Close()
-	reader := bufio.NewReader(f)
+	return NewSeqFromStream(f, worktree)
+}
+
+func NewSeqFromText(text, worktree string) *Seq {
+	return NewSeqFromStream(strings.NewReader(text), worktree)
+}
+
+func NewSeqFromStream(in io.Reader, worktree string) *Seq {
+	reader := bufio.NewReader(in)
 
 	var cmds []*Command
 	var partialLine []string
@@ -80,8 +88,8 @@ func (s *Seq) Apply(id int) {
     c := exec.Command(s.CMD[id].Name, s.CMD[id].Args...)
     c.Env = os.Environ()
     c.Dir = s.dir
-    c.Stdout = os.Stdout
-    c.Stderr = os.Stderr
+    c.Stdout = notify.Writer()
+    c.Stderr = notify.Writer()
 
     notify.Printf(`📡 Exec command :"%s"`+"\n", c.String())
     c.Run()

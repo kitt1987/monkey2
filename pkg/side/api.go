@@ -17,24 +17,7 @@ type Car interface {
 	Done() <-chan error
 }
 
-type chanWriter []chan string
-
-func (w chanWriter) Write(p []byte) (n int, err error) {
-	for _, c := range w {
-		c <- string(p)
-	}
-
-	n = len(p)
-	return
-}
-
-func (w chanWriter) Close() {
-	for _, c := range w {
-		close(c)
-	}
-}
-
-func NewCar(recover func(string)) Car {
+func NewCar(args []string, recover func(string)) Car {
 	if len(os.Args) < 3 {
 		return newPlaceholder()
 	}
@@ -43,12 +26,8 @@ func NewCar(recover func(string)) Car {
 		recover: recover,
 		done: make(chan error, 1),
 	}
-	var args []string
-	if len(os.Args) > 3 {
-		args = os.Args[3:]
-	}
 
-	r.proc = exec.CommandContext(context.Background(), os.Args[2], args...)
+	r.proc = exec.CommandContext(context.Background(), args[0], args[1:]...)
 	r.proc.Env = os.Environ()
 	pwd := conf.SideCarPWD()
 	if len(pwd) > 0 {
@@ -60,8 +39,6 @@ func NewCar(recover func(string)) Car {
 }
 
 type Runner struct {
-	//stdout chanWriter
-	//stderr chanWriter
 	recover func(string)
 	proc *exec.Cmd
 	done chan error
@@ -103,19 +80,4 @@ func (r *Runner) Kill() {
 	if err := r.proc.Wait(); err != nil {
 		return
 	}
-
-	//r.stdout.Close()
-	//r.stderr.Close()
 }
-
-//func (r *Runner) Stdout() <-chan string {
-//	ch := make(chan string)
-//	r.stdout = append(r.stdout, ch)
-//	return ch
-//}
-//
-//func (r *Runner) Stderr() <-chan string {
-//	ch := make(chan string)
-//	r.stderr = append(r.stderr, ch)
-//	return ch
-//}
