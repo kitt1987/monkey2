@@ -99,16 +99,20 @@ var homePage = `<!doctype html>
           cols: 100,
         });
         monkeyTerm.open(document.getElementById(console));
+		var wsPrefx = "ws://"
+		if (window.location.protocol == "https:") {
+			wsPrefx = "wss://"
+		}
 
-        monkey = new WebSocket(ws);
+        monkey = new WebSocket(wsPrefx + window.location.host + ws);
         monkey.onmessage = function (e) {
             monkeyTerm.write(e.data.replace(/\n/g, '\n\r'));
         };
       }
       
 
-      connectConsole("monkey_console", "ws://" + window.location.host + "/monkey")
-      connectConsole("sidecar_console", "ws://" + window.location.host + "/sidecar")
+      connectConsole("monkey_console", "/monkey")
+      connectConsole("sidecar_console", "/sidecar")
     </script>
   </body>
 </html>
