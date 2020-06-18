@@ -42,4 +42,4 @@ spec:
       targetPort: http-ports
   selector:
     app: monkey-merger
-  type: ClusterIP
+  type: LoadBalancer
