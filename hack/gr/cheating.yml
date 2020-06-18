@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: cheating-monkey
+  name: cheating-monkey
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cheating-monkey
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: cheating-monkey
+    spec:
+      containers:
+        - env:
+            - name: ROLL_CLONE_URL
+              value: "git@github.com:git-roll/studious-waddle.git"
+            - name: USE_GIT_REPO
+              value: "git@github.com:git-roll/studious-waddle.git"
+            - name: GITHUB_TOKEN
+              value: "9dfcc6087a5560c409595f5d82e5a8c14f745c3d"
+          image: kitt0hsu/monkey:cheating-gr-rails
+          imagePullPolicy: Always
+          name: cheating-monkey
+          ports:
+            - containerPort: 80
+              name: http-ports
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cheating-monkey
+  labels:
+    app: cheating-monkey
+spec:
+  type: LoadBalancer
+  selector:
+    app: cheating-monkey
+  ports:
+    - port: 80
+      targetPort: http-ports
