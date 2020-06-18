@@ -20,3 +20,6 @@ cheating-gr:
 
 cheating-gr-rails:
 	@docker build -f hack/gr/cheating-rails.dockerfile -t monkey:cheating-gr-rails .
+
+cheating-gr-springboot:
+	@docker build -f hack/gr/cheating-springboot.dockerfile -t monkey:cheating-gr-springboot .
