@@ -1,0 +1,45 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: monkey-merger
+  name: monkey-merger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: monkey-merger
+  template:
+    metadata:
+      labels:
+        app: monkey-merger
+    spec:
+      containers:
+        - env:
+            - name: APP_ID
+              value: "67799"
+            - name: WEBHOOK_SECRET
+              value: VPoZ5VFLHFi7IJluYHYTdURa2e/3JmVuV+Ipikfn1nE
+          image: kitt0hsu/probot-auto-merge:latest
+          imagePullPolicy: Always
+          name: monkey-merger
+          ports:
+            - containerPort: 3000
+              name: http-ports
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+  labels:
+    app: monkey-merger
+  name: monkey-merger
+spec:
+  ports:
+    - port: 3000
+      protocol: TCP
+      targetPort: http-ports
+  selector:
+    app: monkey-merger
+  type: ClusterIP
